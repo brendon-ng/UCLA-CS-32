@@ -25,6 +25,13 @@ History::History(int nRows, int nCols){
     
 }
 
+History::~History(){
+    for(int i=0; i<m_nRows; i++){
+        delete m_grid[i];
+    }
+    delete m_grid;
+}
+
 bool History::record(int r, int c){
     if(r<1 || r>m_nRows || c<1 || c>m_nCols)
         return false;
