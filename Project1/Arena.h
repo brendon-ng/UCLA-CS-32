@@ -12,9 +12,11 @@
 #define Arena_h
 
 #include "globals.h"
+#include "History.h"
 
 class Player;
 class Zombie;
+class History;
 
 class Arena
 {
@@ -38,12 +40,15 @@ public:
     bool   attackZombieAt(int r, int c, int dir);
     bool   moveZombies();
     
+    History& history();
+    
 private:
     int     m_rows;
     int     m_cols;
     Player* m_player;
     Zombie* m_zombies[MAXZOMBIES];
     int     m_nZombies;
+    History m_history;
 };
 
 #endif /* Arena_h */

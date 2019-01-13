@@ -53,10 +53,14 @@ void Zombie::move()
 bool Zombie::getAttacked(int dir)  // return true if dies
 {
     m_health--;
-    if (m_health == 0)
+    if (m_health == 0){
+        m_arena->history().record(m_row, m_col);
         return true;
+    }
+    
     if ( ! m_arena->determineNewPosition(m_row, m_col, dir))
     {
+        m_arena->history().record(m_row, m_col);
         m_health = 0;
         return true;
     }

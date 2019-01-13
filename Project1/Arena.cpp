@@ -10,12 +10,14 @@
 #include "Zombie.h"
 #include "Player.h"
 #include "globals.h"
+#include "History.h"
 
 #include <iostream>
 using namespace std;
 
 
 Arena::Arena(int nRows, int nCols)
+: m_rows(nRows), m_cols(nCols), m_player(nullptr), m_nZombies(0), m_history(nRows,nCols)
 {
     if (nRows <= 0  ||  nCols <= 0  ||  nRows > MAXROWS  ||  nCols > MAXCOLS)
     {
@@ -23,10 +25,6 @@ Arena::Arena(int nRows, int nCols)
         << nCols << "!" << endl;
         exit(1);
     }
-    m_rows = nRows;
-    m_cols = nCols;
-    m_player = nullptr;
-    m_nZombies = 0;
 }
 
 Arena::~Arena()
@@ -197,5 +195,9 @@ bool Arena::moveZombies()
     
     // return true if the player is still alive, false otherwise
     return ! m_player->isDead();
+}
+
+History& Arena::history(){
+    return m_history;
 }
 

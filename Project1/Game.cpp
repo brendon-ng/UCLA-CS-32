@@ -70,11 +70,18 @@ void Game::play()
     while ( ! m_arena->player()->isDead()  &&  m_arena->zombieCount() > 0)
     {
         cout << endl;
-        cout << "Move (u/d/l/r//q): ";
+        cout << "Move (u/d/l/r//h/q): ";
         string action;
         getline(cin,action);
         if (action.size() == 0)  // player stands
             p->stand();
+        else if(action[0]  == 'h'){
+            m_arena->history().display();
+            cout << "Press enter to continue." << endl;
+            cin.ignore(10000,'\n');
+            m_arena->display();
+            continue;
+        }
         else
         {
             switch (action[0])
