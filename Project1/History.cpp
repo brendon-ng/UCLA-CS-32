@@ -15,6 +15,10 @@ using namespace std;
 History::History(int nRows, int nCols){
     m_nCols = nCols;
     m_nRows = nRows;
+    m_grid = new char* [nRows];
+    for(int i=0; i<nRows; i++){
+        m_grid[i] = new char[nCols];
+    }
     for(int r = 0; r<nRows; r++)
         for(int c =0; c<nCols; c++)
             m_grid[r][c] = '.';

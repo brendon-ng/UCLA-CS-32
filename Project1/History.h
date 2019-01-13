@@ -18,7 +18,8 @@ public:
     bool record(int r, int c);
     void display() const;
 private:
-    char m_grid[MAXROWS][MAXCOLS];
+    char** m_grid;
+    //char m_grid[MAXROWS][MAXCOLS];
     int m_nRows;
     int m_nCols;
 };
