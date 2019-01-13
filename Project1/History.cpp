@@ -27,9 +27,9 @@ History::History(int nRows, int nCols){
 
 History::~History(){
     for(int i=0; i<m_nRows; i++){
-        delete m_grid[i];
+        delete [] m_grid[i];
     }
-    delete m_grid;
+    delete [] m_grid;
 }
 
 bool History::record(int r, int c){
