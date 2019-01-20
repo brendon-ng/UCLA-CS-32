@@ -10,8 +10,9 @@
 #define Set_h
 
 #include <iostream>
-//using ItemType = std::string;
-using ItemType = unsigned long;
+using ItemType = std::string;
+//using ItemType = unsigned long;
+
 const int DEFAULT_MAX_ITEMS = 250;
 
 class Set
