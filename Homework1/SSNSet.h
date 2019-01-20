@@ -31,3 +31,4 @@ private:
 };
 
 #endif /* SSNSet_h */
+
