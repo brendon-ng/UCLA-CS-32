@@ -22,7 +22,7 @@ Set::Set(int capacity)
         
     m_size = 0;
     m_capacity = capacity;
-    m_array = new ItemType[capacity];
+    m_array = new ItemType[m_capacity];
 }
 
 Set::Set(const Set& src) // Copy Constructor
@@ -67,8 +67,9 @@ int Set::size() const
 
 bool Set::insert(const ItemType& value)
 {
-    if (m_capacity==m_size)
+    if (m_size >= m_capacity)
         return false;
+    
     for(int i=0; i<m_size; i++)
     {
         if(value > m_array[i])
