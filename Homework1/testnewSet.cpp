@@ -87,7 +87,7 @@ int main()
     
     
     Set s2;
-    s2.print();
+
     ItemType x1[17] = {"a","k","b","l","c","p","i","d","o","e","j","f","g","m","h","n","0"};
     int i=0;
     while(x1[i] != "0"){
@@ -109,7 +109,7 @@ int main()
     ItemType v1;
     s2.get(10, v1);
     assert(v1=="kangaroo");
-    s2.print();
+
     
     Set s3;
     s3.insert("bruin");
@@ -124,7 +124,7 @@ int main()
     s3.erase("dodo bird");
     assert(s3.contains("dodo bird") == false);
     
-    s3.print();
+
     
     s3.swap(s2);
     

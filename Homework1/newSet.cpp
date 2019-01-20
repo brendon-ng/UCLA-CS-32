@@ -17,6 +17,9 @@ Set::Set()
 
 Set::Set(int capacity)
 {
+    if(capacity<0)
+        // END PROGRAM SOMEHOW
+        
     m_size = 0;
     m_capacity = capacity;
     m_array = new ItemType[capacity];

@@ -27,6 +27,7 @@ bool Set::insert(const ItemType& value)
 {
     if (DEFAULT_MAX_ITEMS==m_size)
         return false;
+    
     for(int i=0; i<m_size; i++)
     {
         if(value > m_array[i])
@@ -113,13 +114,6 @@ void Set::swap(Set& other)
 //    m_size = otherSize;
 //    other.m_size = thisSize;
 }
-
-void Set::print(){
-    for(int i=0; i< m_size;i++){
-        std::cout<<m_array[i]<< std::endl;
-    }
-}
-
 
 
 

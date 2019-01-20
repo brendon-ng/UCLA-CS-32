@@ -47,7 +47,6 @@ public:
     void swap(Set& other);
     // Exchange the contents of this set with the other one.
     
-    void print();
 private:
     int m_size;
     ItemType m_array[DEFAULT_MAX_ITEMS];

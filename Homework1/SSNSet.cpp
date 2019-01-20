@@ -12,7 +12,7 @@ using namespace std;
 
 SSNSet::SSNSet()
 {
-    
+    // Set constructor called automatically
 }
 
 bool SSNSet::add(unsigned long ssn)
