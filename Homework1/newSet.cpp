@@ -18,7 +18,7 @@ Set::Set()
 Set::Set(int capacity)
 {
     if(capacity<0){
-        // END PROGRAM SOMEHOW
+        exit(1);
     }
         
     m_capacity = capacity;

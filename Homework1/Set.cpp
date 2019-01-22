@@ -102,17 +102,7 @@ void Set::swap(Set& other)
     Set temp = other;
     other = *this;
     *this = temp;
-//    ItemType* otherArray = other.m_array;
-//    int otherSize = other.size();
-//
-//    ItemType* thisArray = m_array;
-//    int thisSize = m_size;
-//
-//    ItemType* temp = otherArray;
-//    otherArray = thisArray;
-//    thisArray = temp;
-//    m_size = otherSize;
-//    other.m_size = thisSize;
+
 }
 
 
