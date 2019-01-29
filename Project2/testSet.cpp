@@ -30,9 +30,15 @@ int main()
     assert(x == "roti");  // "roti" is greater than exactly 4 items in ss
     ss.get(2, x);
     assert(x == "lavash");  // "lavash" is greater than exactly 2 items in ss
+    std::cout << 5 << std::endl;
+    ss.printForward();
+    ss.printBackward();
     
     Set ss1;
     ss1.insert("laobing");
+    std::cout << 1 << std::endl;
+    ss1.printForward();
+    ss1.printBackward();
     Set ss2;
     ss2.insert("matzo");
     ss2.insert("pita");
@@ -41,6 +47,14 @@ int main()
     assert(ss1.contains("matzo")  &&  ss1.contains("pita"));
     assert(ss2.size() == 1);
     assert(ss2.contains("laobing"));
+    
+    std::cout << 1 << std::endl;
+    ss2.printForward();
+    ss2.printBackward();
+    
+    std::cout << 2 << std::endl;
+    ss1.printForward();
+    ss1.printBackward();
     
     Set ss3;
     ss3.insert("dosa");

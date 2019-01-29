@@ -27,22 +27,15 @@ Set::~Set()
 
 Set::Set(const Set& src)
 {
-    m_size=src.m_size;
-    if(src.head==nullptr){
-        head = nullptr;
-        tail = nullptr;
+    head = nullptr;
+    tail = nullptr;
+    m_size = 0;
+    Node* srcCur = src.head;
+    while(srcCur != nullptr){
+        insert(srcCur->m_value);
+        srcCur = srcCur->m_next;
     }
-    else {
-        Node* srcCur = src.head;
-        head = new Node(srcCur->m_value, nullptr, nullptr);
-        Node* cur = head;
-        while(srcCur->m_next != nullptr){
-            cur->m_next = new Node(srcCur->m_next->m_value, nullptr, cur);
-            srcCur = srcCur->m_next;
-            cur = cur->m_next;
-        }
-        tail = cur;
-    }
+    
 }
 
 Set& Set::operator=(const Set &src)
@@ -58,12 +51,13 @@ Set& Set::operator=(const Set &src)
         cur = next;
     }
     
+    head = nullptr;
+    tail = nullptr;
+    m_size = 0;
     Node* srcCur = src.head;
-    head = srcCur;
     while (srcCur != nullptr)   // Fill new linked list
     {
         insert(srcCur->m_value);
-        tail = srcCur;
         srcCur = srcCur->m_next;
     }
     
@@ -199,6 +193,24 @@ void Set::swap(Set& other)
     head = otherHead;
     tail = otherTail;
     m_size = otherSize;
+}
+
+void Set::printForward() {
+    Node* cur =  head;
+    while(cur != nullptr){
+        std::cout << cur->m_value << ", ";
+        cur = cur->m_next;
+    }
+    std::cout << std::endl;
+}
+
+void Set::printBackward() {
+    Node* cur =  tail;
+    while(cur != nullptr){
+        std::cout << cur->m_value << ", ";
+        cur = cur->m_prev;
+    }
+    std::cout << std::endl << std::endl;
 }
 
 
