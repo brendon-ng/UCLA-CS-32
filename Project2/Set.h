@@ -52,9 +52,6 @@ public:
     void swap(Set& other);
     // Exchange the contents of this set with the other one.
     
-    void printForward();
-    void printBackward();
-    
 private:
     struct Node {
         Node(ItemType value, Node* next, Node* prev) // Node constructor, sets value, next/prev pointers

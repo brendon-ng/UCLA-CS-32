@@ -8,37 +8,38 @@
 
 #include "Set.h"
 
-Set::Set()
+Set::Set()      // Constructor
 {
-    m_size = 0;
+    m_size = 0;     // Empty linked list
     head=nullptr;
     tail=nullptr;
 }
 
-Set::~Set()
+Set::~Set()     // Destructor
 {
     Node* cur = head;
-    while(cur != nullptr){
+    while(cur != nullptr){      // Delete every Node
         Node* next = cur->m_next;
         delete cur;
         cur = next;
     }
 }
 
-Set::Set(const Set& src)
+Set::Set(const Set& src)        // Copy Constructor
 {
-    head = nullptr;
+    head = nullptr;             // Initialize to empty linked list
     tail = nullptr;
     m_size = 0;
     Node* srcCur = src.head;
-    while(srcCur != nullptr){
+    while(srcCur != nullptr){   // Copy each Node in src by using insert function, head and tail
         insert(srcCur->m_value);
         srcCur = srcCur->m_next;
     }
+    // head and tail pointers automatically are set by insert()
     
 }
 
-Set& Set::operator=(const Set &src)
+Set& Set::operator=(const Set &src)     // Assignment Operator
 {
     if(&src == this)    // If this and src's addresses are the same, change nothing and return *this
         return *this;
@@ -51,7 +52,7 @@ Set& Set::operator=(const Set &src)
         cur = next;
     }
     
-    head = nullptr;
+    head = nullptr;     // Initialize to empty linked list
     tail = nullptr;
     m_size = 0;
     Node* srcCur = src.head;
@@ -92,14 +93,14 @@ bool Set::insert(const ItemType& value)
         m_size++;
         return true;
     }
-    else if (value == head -> m_value)
+    else if (value == head -> m_value) // If the value already exists, return false
         return false;
     else {
         Node* cur = head;
         while(cur->m_next != nullptr) { // Traverse to node directly above where to insert
             if(cur->m_next->m_value > value)
                 break;
-            else if (cur->m_next->m_value == value)
+            else if (cur->m_next->m_value == value) // if value already exists, return false
                 return false;
             
             cur = cur->m_next;
@@ -137,10 +138,11 @@ bool Set::erase(const ItemType& value)
     }
     else{
         Node* cur = head;
-        while (cur->m_next != nullptr) {
+        while (cur->m_next != nullptr) { // Traver to node above the one we want to delete
             if(cur->m_next->m_value == value){
                 Node* del = cur->m_next;
                 cur->m_next = cur->m_next->m_next;
+                
                 if(cur->m_next != nullptr)      // Set prev pointer, keep in mind case of end of list
                     cur->m_next->m_prev = cur;
                 else
@@ -159,7 +161,7 @@ bool Set::erase(const ItemType& value)
 bool Set::contains(const ItemType& value) const
 {
     Node* cur = head;
-    while(cur != nullptr){
+    while(cur != nullptr){  // Traverse through nodes until we find one that matches value
         if(cur->m_value == value)
             return true;
         cur = cur->m_next;
@@ -172,7 +174,7 @@ bool Set::get(int i, ItemType& value) const
     if(i < 0 || i >= m_size)
         return false;
     Node* cur = head;
-    while (i>0) {
+    while (i>0) {   // Traverse through i nodes
         cur = cur->m_next;
         i--;
     }
@@ -182,10 +184,11 @@ bool Set::get(int i, ItemType& value) const
 
 void Set::swap(Set& other)
 {
-    Node* otherHead = other.head;
+    Node* otherHead = other.head;   // Temporary value holders
     Node* otherTail = other.tail;
     int otherSize = other.m_size;
     
+    // Perform the swap of addresses
     other.head = head;
     other.tail = tail;
     other.m_size = m_size;
@@ -205,12 +208,15 @@ void unite(const Set& s1, const Set& s2, Set& result)
         result.erase(value);
     }
     
+    // Copy each value of s1 into result using insert()
     for(int i=0; i<s1.size(); i++)
     {
         ItemType value;
         s1.get(i, value);
         result.insert(value);
     }
+    
+    // Copy each value of s2 into result using insert(), existing values will be ignored
     for(int i=0; i<s2.size(); i++)
     {
         ItemType value;
@@ -222,31 +228,13 @@ void unite(const Set& s1, const Set& s2, Set& result)
 
 void subtract(const Set& s1, const Set& s2, Set& result)
 {
-    result = s1;
+    result = s1;    // Set result to a copy of s1 using assignment operator
     
-    for(int i=0; i< s2.size(); i++){
+    for(int i=0; i< s2.size(); i++){    // For each value of s2, if it is in s1, erase it from result
         ItemType value;
         s2.get(i, value);
         result.erase(value);
     }
-}
-
-void Set::printForward() {
-    Node* cur =  head;
-    while(cur != nullptr){
-        std::cout << cur->m_value << ", ";
-        cur = cur->m_next;
-    }
-    std::cout << std::endl;
-}
-
-void Set::printBackward() {
-    Node* cur =  tail;
-    while(cur != nullptr){
-        std::cout << cur->m_value << ", ";
-        cur = cur->m_prev;
-    }
-    std::cout << std::endl << std::endl;
 }
 
 
