@@ -192,6 +192,70 @@ int main()
     numbers3.printForward();
     numbers3.printBackward();
     
+    assert(numbers1.erase("0"));
+    assert(numbers1.size() == 9);
+    std::cout << 9 << std::endl;
+    numbers1.printForward();
+    numbers1.printBackward();
+    
+    assert(numbers1.erase("9"));
+    assert(numbers1.size() == 8);
+    std::cout << 8 << std::endl;
+    numbers1.printForward();
+    numbers1.printBackward();
+    
+    
+    Set unite1;
+    ItemType uniteOne[17] = {"2","8","3","9","5","\0"};
+    j=0;
+    while(uniteOne[j] != "\0"){
+        unite1.insert(uniteOne[j]);
+        j++;
+    }
+    Set unite2;
+    ItemType uniteTwo[17] = {"6","3","8","5","10","\0"};
+    j=0;
+    while(uniteTwo[j] != "\0"){
+        unite2.insert(uniteTwo[j]);
+        j++;
+    }
+    Set united;
+    unite(unite1, unite2, united);
+    assert(united.size() == 7);
+    assert(united.contains("9"));
+    assert(united.contains("3"));
+    assert(united.contains("5"));
+    assert(united.contains("6"));
+    assert(united.contains("10"));
+    assert(united.contains("2"));
+    assert(united.contains("8"));
+    std::cout << 7 << std::endl;
+    united.printForward();
+    united.printBackward();
+    
+    subtract(unite1, unite2, united);
+    assert(united.size() == 2);
+    assert(united.contains("2"));
+    assert(united.contains("9"));
+    std::cout << 2 << std::endl;
+    united.printForward();
+    united.printBackward();
+    
+    unite(unite1, unite2, united);
+    assert(united.size() == 7);
+    assert(united.contains("9"));
+    assert(united.contains("3"));
+    assert(united.contains("5"));
+    assert(united.contains("6"));
+    assert(united.contains("10"));
+    assert(united.contains("2"));
+    assert(united.contains("8"));
+    std::cout << 7 << std::endl;
+    united.printForward();
+    united.printBackward();
+    
+    
+    
     cout << "Passed all tests" << endl;
     
 }

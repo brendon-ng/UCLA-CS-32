@@ -195,6 +195,42 @@ void Set::swap(Set& other)
     m_size = otherSize;
 }
 
+
+void unite(const Set& s1, const Set& s2, Set& result)
+{
+    for(int i=0; i<result.size(); i++)  // Clear result set
+    {
+        ItemType value;
+        result.get(i, value);
+        result.erase(value);
+    }
+    
+    for(int i=0; i<s1.size(); i++)
+    {
+        ItemType value;
+        s1.get(i, value);
+        result.insert(value);
+    }
+    for(int i=0; i<s2.size(); i++)
+    {
+        ItemType value;
+        s2.get(i, value);
+        result.insert(value);
+    }
+    
+}
+
+void subtract(const Set& s1, const Set& s2, Set& result)
+{
+    result = s1;
+    
+    for(int i=0; i< s2.size(); i++){
+        ItemType value;
+        s2.get(i, value);
+        result.erase(value);
+    }
+}
+
 void Set::printForward() {
     Node* cur =  head;
     while(cur != nullptr){

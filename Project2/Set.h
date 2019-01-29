@@ -10,10 +10,9 @@
 #define Set_h
 
 #include <iostream>
+#include <string>
 using ItemType = std::string;
 //using ItemType = unsigned long;
-
-const int DEFAULT_MAX_ITEMS = 250;
 
 class Set
 {
@@ -58,7 +57,8 @@ public:
     
 private:
     struct Node {
-        Node(ItemType value, Node* next, Node* prev) {
+        Node(ItemType value, Node* next, Node* prev) // Node constructor, sets value, next/prev pointers
+        {
             m_value = value;
             m_next = next;
             m_prev = prev;
@@ -72,6 +72,11 @@ private:
     Node* head;
     Node* tail;
 };
+
+// Non-member functions
+void unite(const Set& s1, const Set& s2, Set& result);
+void subtract(const Set& s1, const Set& s2, Set& result);
+
 
 #endif /* Set_h */
 
