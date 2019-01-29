@@ -30,15 +30,10 @@ int main()
     assert(x == "roti");  // "roti" is greater than exactly 4 items in ss
     ss.get(2, x);
     assert(x == "lavash");  // "lavash" is greater than exactly 2 items in ss
-    std::cout << 5 << std::endl;
-    ss.printForward();
-    ss.printBackward();
+   
     
     Set ss1;
     ss1.insert("laobing");
-    std::cout << 1 << std::endl;
-    ss1.printForward();
-    ss1.printBackward();
     Set ss2;
     ss2.insert("matzo");
     ss2.insert("pita");
@@ -48,13 +43,8 @@ int main()
     assert(ss2.size() == 1);
     assert(ss2.contains("laobing"));
     
-    std::cout << 1 << std::endl;
-    ss2.printForward();
-    ss2.printBackward();
     
-    std::cout << 2 << std::endl;
-    ss1.printForward();
-    ss1.printBackward();
+    
     
     Set ss3;
     ss3.insert("dosa");
@@ -88,10 +78,7 @@ int main()
         s2.insert(x1[i]);
         i++;
     }
-    std::cout << 16 << std::endl;
-    s2.printForward();
-    s2.printBackward();
-    
+ 
     assert(s2.size()==16);
     assert(s2.insert("p") == false);
     assert(s2.insert("l") == false);
@@ -107,12 +94,7 @@ int main()
     ItemType v1;
     s2.get(10, v1);
     assert(v1=="kangaroo");
-    
-    std::cout << 17 << std::endl;
-    s2.printForward();
-    s2.printBackward();
 
-    
     Set s3;
     s3.insert("bruin");
     s3.insert("kangaroo");
@@ -142,9 +124,7 @@ int main()
     
     Set numbers1;
     assert(numbers1.empty());
-    std::cout << 0 << std::endl;
-    numbers1.printForward();
-    numbers1.printBackward();
+
     ItemType numbers[17] = {"1","8","4","7","1","9","0","0","9","2","3","6","5","\0"};
     int j=0;
     while(numbers[j] != "\0"){
@@ -152,9 +132,7 @@ int main()
         j++;
     }
     assert(numbers1.size() == 10);
-    std::cout << 10 << std::endl;
-    numbers1.printForward();
-    numbers1.printBackward();
+
     
     Set numbers2;
     ItemType numbersTens[17] = {"10","80","40","70","10","90","90","20","30","60","50","\0"};
@@ -164,9 +142,7 @@ int main()
         j++;
     }
     assert(numbers2.size() == 9);
-    std::cout << 9 << std::endl;
-    numbers2.printForward();
-    numbers2.printBackward();
+   
     
     Set numbers3 = numbers1;
     for(int i=0; i<10 ;i++){
@@ -176,10 +152,7 @@ int main()
         numbers3.get(i, two);
         assert(one==two);
     }
-    std::cout << 10 << std::endl;
-    numbers3.printForward();
-    numbers3.printBackward();
-    
+   
     numbers3 = numbers2;
     for(int i=0; i<9 ;i++){
         ItemType two;
@@ -188,21 +161,14 @@ int main()
         numbers3.get(i, three);
         assert(two==three);
     }
-    std::cout << 9 << std::endl;
-    numbers3.printForward();
-    numbers3.printBackward();
     
     assert(numbers1.erase("0"));
     assert(numbers1.size() == 9);
-    std::cout << 9 << std::endl;
-    numbers1.printForward();
-    numbers1.printBackward();
+
     
     assert(numbers1.erase("9"));
     assert(numbers1.size() == 8);
-    std::cout << 8 << std::endl;
-    numbers1.printForward();
-    numbers1.printBackward();
+    
     
     
     Set unite1;
@@ -229,17 +195,12 @@ int main()
     assert(united.contains("10"));
     assert(united.contains("2"));
     assert(united.contains("8"));
-    std::cout << 7 << std::endl;
-    united.printForward();
-    united.printBackward();
     
     subtract(unite1, unite2, united);
     assert(united.size() == 2);
     assert(united.contains("2"));
     assert(united.contains("9"));
-    std::cout << 2 << std::endl;
-    united.printForward();
-    united.printBackward();
+   
     
     unite(unite1, unite2, united);
     assert(united.size() == 7);
@@ -250,9 +211,7 @@ int main()
     assert(united.contains("10"));
     assert(united.contains("2"));
     assert(united.contains("8"));
-    std::cout << 7 << std::endl;
-    united.printForward();
-    united.printBackward();
+    
     
     
     

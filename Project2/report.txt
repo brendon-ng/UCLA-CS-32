@@ -1,0 +1,177 @@
+Brendon Ng
+304-925-492
+UCLA CS 32 Lec 2 Dis 2E
+Prof. Smallberg
+
+Report - Programming Assignment 2: Double Trouble
+
+1. My doubly-linked list implementation:
+   Each Set contains its values in a linked list of Nodes. Each Node carries one of the
+   values in the Set. The linked list is not circular nor does it have a dummy Node.
+   Instead, each Set has a 'head' pointer that points to the first Node in the
+   linked list, and a 'tail' pointer that points to the last Node.
+   The Nodes are organized alphabetically to make it easier to access and find values.
+   Each Node has a value, and a pointer to the next node and the previous node
+	           ___________________
+head: [1000] ----> | m_value = "a"    |  1000
+                   |                  |
+                   | m_next = 2423    |-------------
+             ----->|                  |            |
+             |     | m_prev = nullptr |            |
+             |     ____________________            |
+             |                                     |
+             |     ____________________            |
+             |     | m_value = "b"    |  2423  <---|
+             |     |                  |            
+             |     | m_next = 813     |-------------
+             |     |                  |            |
+             ------| m_prev = 1000    |            |
+             ----->____________________            |
+             |                                     |
+             |     ____________________            |
+             |     | m_value = "c"    |  813  <-----
+             |     |                  |            
+             |     | m_next = nullptr |
+             |     |                  |            
+             ------| m_prev = 2423    |           
+tail: [813] -----> ____________________       
+
+
+2. PSEUDOCODE 
+
+bool Set::insert(const ItemType& value)
+{
+	if linked list has no elements, create new node at the head, set tail to that node
+
+	if the value is before the first node alphabetically, add to front
+
+	if the value already exists at the head node then return false
+
+	if none of the above, iterate through to the node directly above where to insert
+		
+	Allocate new node
+	connect new node in between current node and the next one by assigning next and
+	prev pointers
+	if we're at the end of the linked list, reassign tail to the new node
+}
+
+bool Set::erase(const ItemType& value)
+{
+	if the linked list is empty, return false
+
+	if we wish to delete the first node, delete it and set new head pointer
+
+	if none of the above, traverse to the node above the one we want to delete
+	
+	delete the node and reassign next and previous pointers of surrounding nodes
+	if we're deleting the last node in the list, reassign tail
+}
+
+bool Set::contains(const ItemType& value) const
+{
+	Traverse through nodes until we find one that matches value
+	if we find a match, return true
+	
+	if it makes it through the whole list without a match, return false
+}
+
+bool Set::get(int i, ItemType& value) const
+{
+	if i is outside the range of the linked list, return false
+	
+	else, traverse through i nodes and set value to the value of the i-th node
+	return true
+}
+
+void Set::swap(Set& other)
+{
+	Create new Node pointers to temporarily store the addresses of head and tail of
+	'other'
+
+	Assign the current head, tail addresses and size to 'other'
+
+	Assign the temporarily stored addresses and size to the current head, tail, m_size
+}
+
+void unite(const Set& s1, const Set& s2, Set& result)
+{
+	Erase all nodes that are left in 'result'
+
+	Copy each value from 's1' into 'result' using insert(), it will ignore duplicates
+
+	Copy each value from 's2' into 'result' using insert(), it will ignore duplicates
+}
+
+void subtract(const Set& s1, const Set& s2, Set& result)
+{
+	Copy contents of 's1' to 'result'
+	
+	For each element of 's2', attempt to erase it from 'result', leaving only values
+	that are only in 's1' and not 's2'
+}
+
+Destructor:
+Set::~Set()
+{
+	Iterate through each node
+	temporarily store the address of next node
+	delete current node
+	traverse to next node
+}
+
+Copy Constructor:
+Set::Set(const Set& src) 
+{
+	Initialize current Set to empty linked list
+	Copy each Node in src to current Set using insert function
+}
+
+Assignment Operator
+Set& Set::operator=(const Set &src)
+{
+	If it is trying to assign itself, do nothing and return *this
+
+	Destruct all of the nodes currently in the linked list
+	
+	Initialize the set to an empty linked list
+
+	Copy each Node in src to current Set using insert function
+}
+
+
+3. TEST CASES
+
+The tests were performed on a set of strings
+
+    Set s2;
+
+    ItemType x1[17] = {"a","k","b","l","c","p","i","d",
+			"o","e","j","f","g","m","h","n","0"};
+    int i=0;
+    while(x1[i] != "0"){
+        s2.insert(x1[i]);  
+        i++;
+    }
+ 
+    assert(s2.size()==16);
+    assert(s2.insert("p") == false);
+    assert(s2.insert("l") == false);
+    assert(s2.insert("h") == false);
+    assert(s2.erase("z") == false);
+    assert(s2.size()==16);
+    assert(s2.insert("z") == true);
+    assert(s2.size()==17);
+    assert(s2.erase("c") == true);
+    assert(s2.size() == 16);
+    assert(s2.insert("kangaroo") == true);
+    assert(s2.contains("kangaroo") == true);
+    ItemType v1;
+    s2.get(10, v1);
+    assert(v1=="kangaroo");
+	     
+
+
+
+                   
+
+	

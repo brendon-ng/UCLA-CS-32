@@ -138,7 +138,7 @@ bool Set::erase(const ItemType& value)
     }
     else{
         Node* cur = head;
-        while (cur->m_next != nullptr) { // Traver to node above the one we want to delete
+        while (cur->m_next != nullptr) { // Traverse to node above the one we want to delete
             if(cur->m_next->m_value == value){
                 Node* del = cur->m_next;
                 cur->m_next = cur->m_next->m_next;
