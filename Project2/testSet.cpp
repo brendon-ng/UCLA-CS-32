@@ -114,8 +114,6 @@ int main()
     
     assert(s2.size()==6);
     assert(s2.contains("dodo bird") == false);
-    
-
     s3.get(10, v1);
     assert(v1=="kangaroo");
     assert(s3.contains("kangaroo") == true);
@@ -152,6 +150,14 @@ int main()
         numbers3.get(i, two);
         assert(one==two);
     }
+    
+    assert(numbers1.size() == numbers3.size());
+    assert(numbers1.erase("0"));
+    assert(numbers1.size() == 9);
+    assert(numbers1.erase("9"));
+    assert(numbers1.size() == 8);
+    assert(numbers1.size() != numbers3.size());
+
    
     numbers3 = numbers2;
     for(int i=0; i<9 ;i++){
@@ -162,12 +168,14 @@ int main()
         assert(two==three);
     }
     
-    assert(numbers1.erase("0"));
-    assert(numbers1.size() == 9);
+    assert(numbers2.size() == numbers3.size());
+    assert(numbers2.erase("10"));
+    assert(numbers2.size() == 8);
+    assert(numbers2.erase("90"));
+    assert(numbers2.size() == 7);
+    assert(numbers2.size() != numbers3.size());
 
     
-    assert(numbers1.erase("9"));
-    assert(numbers1.size() == 8);
     
     
     
