@@ -88,6 +88,10 @@ int main()
         s2.insert(x1[i]);
         i++;
     }
+    std::cout << 16 << std::endl;
+    s2.printForward();
+    s2.printBackward();
+    
     assert(s2.size()==16);
     assert(s2.insert("p") == false);
     assert(s2.insert("l") == false);
@@ -103,6 +107,10 @@ int main()
     ItemType v1;
     s2.get(10, v1);
     assert(v1=="kangaroo");
+    
+    std::cout << 17 << std::endl;
+    s2.printForward();
+    s2.printBackward();
 
     
     Set s3;
@@ -131,6 +139,58 @@ int main()
     assert(s3.contains("kangaroo") == true);
     assert(s3.size()==17);
     
+    
+    Set numbers1;
+    assert(numbers1.empty());
+    std::cout << 0 << std::endl;
+    numbers1.printForward();
+    numbers1.printBackward();
+    ItemType numbers[17] = {"1","8","4","7","1","9","0","0","9","2","3","6","5","\0"};
+    int j=0;
+    while(numbers[j] != "\0"){
+        numbers1.insert(numbers[j]);
+        j++;
+    }
+    assert(numbers1.size() == 10);
+    std::cout << 10 << std::endl;
+    numbers1.printForward();
+    numbers1.printBackward();
+    
+    Set numbers2;
+    ItemType numbersTens[17] = {"10","80","40","70","10","90","90","20","30","60","50","\0"};
+    j=0;
+    while(numbersTens[j] != "\0"){
+        numbers2.insert(numbersTens[j]);
+        j++;
+    }
+    assert(numbers2.size() == 9);
+    std::cout << 9 << std::endl;
+    numbers2.printForward();
+    numbers2.printBackward();
+    
+    Set numbers3 = numbers1;
+    for(int i=0; i<10 ;i++){
+        ItemType one;
+        numbers1.get(i, one);
+        ItemType two;
+        numbers3.get(i, two);
+        assert(one==two);
+    }
+    std::cout << 10 << std::endl;
+    numbers3.printForward();
+    numbers3.printBackward();
+    
+    numbers3 = numbers2;
+    for(int i=0; i<9 ;i++){
+        ItemType two;
+        numbers2.get(i, two);
+        ItemType three;
+        numbers3.get(i, three);
+        assert(two==three);
+    }
+    std::cout << 9 << std::endl;
+    numbers3.printForward();
+    numbers3.printBackward();
     
     cout << "Passed all tests" << endl;
     
