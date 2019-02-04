@@ -19,6 +19,8 @@ int getPrecedence(char ch);
 int evaluate(string infix, const Set& trueValues, const Set& falseValues, string& postfix, bool& result)
 {
     //CHECK SYNTAX AND CONVERT TO POSTFIX
+    if(infix.length() == 0)
+        return 1;
     stack<char> charStack;
     string post = "";
     bool lastCharOperand = false;
@@ -233,9 +235,11 @@ int main()
     specTestTrue.insert('c');
     specTestTrue.insert('l');
     specTestTrue.insert('a');
+    specTestTrue.insert('t');
     specTestFalse.insert('n');
     specTestFalse.insert('s');
     specTestFalse.insert('x');
+    specTestFalse.insert('f');
     
     assert(evaluate("u", specTestTrue, specTestFalse, str, temp)==0 && temp == true);
     assert(evaluate("u&c&l&a & !(u&s&c)", specTestTrue, specTestFalse, str, temp)==0 && temp == true);
@@ -251,6 +255,13 @@ int main()
     assert(evaluate("a&!!!(s|u&c|n)", specTestTrue, specTestFalse, str, temp)==0 && temp == false);
     assert(evaluate("!!!!!(s&u&n)", specTestTrue, specTestFalse, str, temp)==0 && temp == true);
     assert(evaluate("a&!!!!!!!(s|u&c|n)|!!!!(s&u&n)", specTestTrue, specTestFalse, str, temp)==0 && temp == false);
+    assert(evaluate("", specTestTrue, specTestFalse, str, temp)==1);
+    assert(evaluate("t&!!!!(s|u&c|n)&!!!f&(!!(f)|!(t&f))", specTestTrue, specTestFalse, str, temp)==0 && temp == true);
+    assert(evaluate("a&!!!(s|U&c|n)", specTestTrue, specTestFalse, str, temp)==1);
+    assert(evaluate("a&!!!(s!|u&c|n)", specTestTrue, specTestFalse, str, temp)==1);
+    assert(evaluate(")a&!!!(s|u&c|n)", specTestTrue, specTestFalse, str, temp)==1);
+    assert(evaluate("a&!!!(s|u&c|n)!", specTestTrue, specTestFalse, str, temp)==1);
+    assert(evaluate("a&!!!(s.|u&c|n)", specTestTrue, specTestFalse, str, temp)==1);
     
 
     
