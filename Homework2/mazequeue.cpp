@@ -35,7 +35,6 @@ bool pathExists(string maze[], int nRows, int nCols, int sr, int sc, int er, int
         int r = coordQueue.front().r();
         int c = coordQueue.front().c();
         coordQueue.pop();
-        cout << "(" << r << ", " << c << ")" <<  endl;
         if (r==er && c==ec)
             return true;
         if (maze[r+1][c] == '.') { // SOUTH
