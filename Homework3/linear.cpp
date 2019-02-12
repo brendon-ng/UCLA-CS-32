@@ -7,13 +7,13 @@
 //
 
 
-#include <iostream>
-using namespace std;
-
-bool somePredicate(double x)
-{
-    return x > 0;
-}
+//#include <iostream>
+//using namespace std;
+//
+//bool somePredicate(double x)
+//{
+//    return x > 0;
+//}
 
 
 // Return true if the somePredicate function returns true for at
@@ -107,9 +107,9 @@ bool includes(const double a1[], int n1, const double a2[], int n2)
 }
 
 
-int main(){
-    double n1[7] = {10., 50., 40., 20., 50., 40., 30.};
-    double n2[3] = {10., 20., 20.};
-    cout << includes(n1, 7, n2, 3) << endl;
-}
+//int main(){
+//    double n1[7] = {10., 50., 40., 20., 50., 40., 30.};
+//    double n2[3] = {10., 20., 20.};
+//    cout << includes(n1, 7, n2, 3) << endl;
+//}
 
