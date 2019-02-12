@@ -6,8 +6,8 @@
 //  Copyright © 2019 Brendon Ng. All rights reserved.
 //
 
-#include <iostream>
-using namespace std;
+//#include <iostream>
+//using namespace std;
 
 // Return the number of ways that all n2 elements of a2 appear
 // in the n1 element array a1 in the same order (though not
@@ -111,43 +111,42 @@ void order(double a[], int n)
 }
 
 
-int main(){
-    double arr[7] = {10., 50., 40., 20., 50., 40., 30.};
-    double a1[3] = {10., 20., 40.};
-    double a2[3] = {10., 40., 30.};
-    double a3[3] = {20., 10., 40.};
-    double a4[3] = {50., 40., 30.};
-
-    cout << countIncludes(arr, 7, a1, 3) << endl;
-    cout << countIncludes(arr, 7, a2, 3) << endl;
-    cout << countIncludes(arr, 7, a3, 3) << endl;
-    cout << countIncludes(arr, 7, a4, 3) << endl;
-    order(arr, 7);
-    order(a1, 3);
-    order(a2, 3);
-    order(a3, 3);
-    order(a4, 3);
-    for(int i=0;i<7;i++){
-        cout << arr[i] << " ";
-    }
-    cout << endl;
-    for(int i=0;i<3;i++){
-        cout << a1[i] << " ";
-    }
-    cout << endl;
-    for(int i=0;i<3;i++){
-        cout << a2[i] << " ";
-    }
-    cout << endl;
-    for(int i=0;i<3;i++){
-        cout << a3[i] << " ";
-    }
-    cout << endl;
-    for(int i=0;i<3;i++){
-        cout << a4[i] << " ";
-    }
-    cout << endl;
-
-}
-
-
+//int main(){
+//    double arr[7] = {10., 50., 40., 20., 50., 40., 30.};
+//    double a1[3] = {10., 20., 40.};
+//    double a2[3] = {10., 40., 30.};
+//    double a3[3] = {20., 10., 40.};
+//    double a4[3] = {50., 40., 30.};
+//
+//    cout << countIncludes(arr, 7, a1, 3) << endl;
+//    cout << countIncludes(arr, 7, a2, 3) << endl;
+//    cout << countIncludes(arr, 7, a3, 3) << endl;
+//    cout << countIncludes(arr, 7, a4, 3) << endl;
+//    order(arr, 7);
+//    order(a1, 3);
+//    order(a2, 3);
+//    order(a3, 3);
+//    order(a4, 3);
+//    for(int i=0;i<7;i++){
+//        cout << arr[i] << " ";
+//    }
+//    cout << endl;
+//    for(int i=0;i<3;i++){
+//        cout << a1[i] << " ";
+//    }
+//    cout << endl;
+//    for(int i=0;i<3;i++){
+//        cout << a2[i] << " ";
+//    }
+//    cout << endl;
+//    for(int i=0;i<3;i++){
+//        cout << a3[i] << " ";
+//    }
+//    cout << endl;
+//    for(int i=0;i<3;i++){
+//        cout << a4[i] << " ";
+//    }
+//    cout << endl;
+//
+//}
+//
