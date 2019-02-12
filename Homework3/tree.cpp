@@ -24,8 +24,9 @@ int countIncludes(const double a1[], int n1, const double a2[], int n2)
 {
     if(n1 < n2) //Base case: If we have run out of a1 elements to match to
         return 0;
-    if(n2 == 0) //Base case: If there are no n2 elements, it is true
+    if(n2 <= 0) //Base case: If there are no n2 elements, it is true
         return 1;
+    
     
     //If first elements match, keep searching and also search without moving on to the next a2 element
     if(a1[0] == a2[0])

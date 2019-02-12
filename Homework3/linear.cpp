@@ -96,7 +96,7 @@ bool includes(const double a1[], int n1, const double a2[], int n2)
 {
     if(n1 < n2) //Base case: If we have run out of a1 elements to match to
         return false;
-    if(n2 == 0) //Base case: If there are no n2 elements, it is true
+    if(n2 <= 0) //Base case: If there are no n2 elements, it is true
         return true;
 
     if(a1[0] == a2[0])
