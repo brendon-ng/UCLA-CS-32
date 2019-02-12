@@ -18,23 +18,24 @@ public:
         m_name = name;
     }
     
-    virtual ~Landmark();
+    virtual ~Landmark() {}  // Required virtual destructor
     
-    string name() const {return m_name;}
-    virtual string color() const = 0;
-    virtual string icon() const = 0;
+    string name() const {return m_name;}    // Reference private name variable in parent class
+    
+    virtual string color() const = 0;       // Pure virtual to make Landmark an ABC:
+    virtual string icon() const = 0;        //      Each Landmark has a different color and icon
     
     
 private:
     string m_name;
 };
 
-class Hotel : public Landmark
+class Hotel: public Landmark
 {
 public:
     Hotel(string name)
     : Landmark(name)
-    { }
+    {}
     
     virtual ~Hotel() {
         cout << "Destroying the hotel " << name() << "." << endl;
@@ -44,13 +45,13 @@ public:
     virtual string icon() const {return "bed";}
 };
 
-class Restaurant : public Landmark
+class Restaurant: public Landmark
 {
 public:
     Restaurant(string name, int capacity)
     : Landmark(name)
     {
-        m_capacity = capacity;
+        m_capacity = capacity;      // Initialize private variable only for Restaurants
     }
     
     virtual ~Restaurant() {
@@ -58,7 +59,7 @@ public:
     }
     
     virtual string color() const {return "yellow";}
-    virtual string icon() const {
+    virtual string icon() const {   // Large or small icon depends on capacity
         if(m_capacity >= 40)
             return "large knife/fork";
         else
@@ -68,12 +69,12 @@ private:
     int m_capacity;
 };
 
-class Hospital : public Landmark
+class Hospital: public Landmark
 {
 public:
     Hospital(string name)
     : Landmark(name)
-    { }
+    {}
     
     virtual ~Hospital() {
         cout << "Destroying the hospital " << name() << "." << endl;
