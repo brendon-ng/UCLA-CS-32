@@ -15,6 +15,7 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
+    virtual ~StudentWorld();
 
 private:
     int m_citizensLeft;

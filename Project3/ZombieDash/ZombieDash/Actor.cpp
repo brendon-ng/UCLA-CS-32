@@ -13,22 +13,58 @@ Actor::Actor(int imageID, double startX, double startY, Direction dir, int depth
     m_isDead = false;
     m_world = world;
 }
+
 Actor::~Actor(){}
-
-
 void Actor::die() {m_isDead = true;}
-StudentWorld* Actor::getWorld() {return m_world;}
+bool Actor::isDead() const {return m_isDead;}
+StudentWorld* Actor::getWorld() const {return m_world;}
+
+
+
+//////////////////////////////////
+///// MOVABLE implementation /////
+//////////////////////////////////
+Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int depth, StudentWorld* world)
+: Actor(imageID, startX, startY, dir, depth, world)
+{
+}
+
+Moveable::~Moveable(){}
+
+void Moveable::moveSelf(Direction dir, int steps) {
+    setDirection(dir);
+    switch (dir) {
+        case up:
+            moveTo(getX(), getY()+steps);
+            break;
+        case down:
+            moveTo(getX(), getY()-steps);
+            break;
+        case right:
+            moveTo(getX()+steps, getY());
+            break;
+        case left:
+            moveTo(getX()-steps, getY());
+            break;
+            
+        default:
+            break;
+    }
+    
+}
 
 
 ////////////////////////////////
 ///// PLAYER implementation ////
 ////////////////////////////////
 Penelope::Penelope(double startX, double startY, StudentWorld* world)
-: Actor(IID_PLAYER, startX, startY, right, 0, world)
+: Moveable(IID_PLAYER, startX, startY, right, 0, world)
 {
     m_infectionCount = m_mines = m_charges = m_vaccines = 0;
     m_infectionStatus = false;
 }
+
+Penelope::~Penelope() {}
 
 void Penelope::doSomething(){
     // Check to see if she is alive
@@ -38,7 +74,7 @@ void Penelope::doSomething(){
     // Check to see if she is infected
     if(m_infectionStatus)
         m_infectionCount++;
-    if(m_infectionCount >= 500){
+    if(m_infectionCount >= MAX_INFECTION){
         die();
         //play a sound SOUND_PLAYER_DIE
         return;
@@ -55,24 +91,22 @@ void Penelope::doSomething(){
                 // introduce landmine
                 break;
             case KEY_PRESS_ENTER:
-                m_infectionStatus = false;
-                m_vaccines--;
+                if(m_vaccines>0){
+                    m_infectionStatus = false;
+                    m_vaccines--;
+                }
                 break;
             case KEY_PRESS_UP:
-                setDirection(up);
-                moveTo(getX(),getY()+4);
+                moveSelf(up, PLAYER_STEP_SIZE);
                 break;
             case KEY_PRESS_DOWN:
-                setDirection(down);
-                moveTo(getX(),getY()-4);
+                moveSelf(down, PLAYER_STEP_SIZE);
                 break;
             case KEY_PRESS_RIGHT:
-                setDirection(right);
-                moveTo(getX()+4,getY());
+                moveSelf(right, PLAYER_STEP_SIZE);
                 break;
             case KEY_PRESS_LEFT:
-                setDirection(left);
-                moveTo(getX()-4,getY());
+                moveSelf(left, PLAYER_STEP_SIZE);
                 break;
                 
             default:
@@ -94,6 +128,8 @@ Wall::Wall(double startX, double startY, StudentWorld* world)
 : Actor(IID_WALL, startX, startY, right, 0, world)
 {
 }
+
+Wall::~Wall() {}
 
 
 void Wall::doSomething()

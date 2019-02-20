@@ -21,7 +21,10 @@ StudentWorld::StudentWorld(string assetPath)
 
 int StudentWorld::init()
 {
+    // Initialize variables
     m_citizensLeft = 0;
+    
+    // Get level file
     Level lev(assetPath());
     string levelFile;
     switch (getLevel()) {
@@ -32,18 +35,18 @@ int StudentWorld::init()
             levelFile = "level02.txt";
             break;
         case 3:
-            levelFile = "level01.txt";
+            levelFile = "level03.txt";
             break;
         case 4:
-            levelFile = "level01.txt";
+            levelFile = "level04.txt";
             break;
         case 5:
-            levelFile = "level01.txt";
+            levelFile = "level05.txt";
             break;
         case 6:
-            levelFile = "level01.txt";
+            levelFile = "level06.txt";
             break;
-        default:
+        default: // If level file is unfound, the player has won
             return GWSTATUS_PLAYER_WON;
             break;
     }
@@ -53,6 +56,7 @@ int StudentWorld::init()
     else if (result == Level::load_fail_bad_format)
         cerr << "Your level was improperly formatted" << endl;
     else if(result == Level::load_success){
+        // Iterate through each cell in level file and allocate an Actor object if present
         for(int y = 0 ; y<LEVEL_HEIGHT ; y++){
             for(int x = 0; x<LEVEL_WIDTH; x++){
                 Level::MazeEntry ge = lev.getContentsOf(x, y);
@@ -95,20 +99,50 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    // This code is here merely to allow the game to build, run, and terminate after you hit enter.
-    // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
+    // Ask all actors to do something
+        // check is Penelope dies
     list<Actor*>::iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        (*it)->doSomething();
+        if(! (*it)->isDead() )
+            (*it)->doSomething();
         it++;
     }
-    //decLives();
+    
+    // If all citizens AND Penelope have used the exit
+    //if()
+    //    return GWSTATUS_FINISHED_LEVEL;
+    
+    // Delete any actors that have died
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if((*it)->isDead()){
+            delete *it;
+            it = m_actors.erase(it);
+        }
+        else
+            it++;
+    }
+    
+    // Update status text
+    
+    
     return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
+    // Delete every dynamically allocated Actor object
+    list<Actor*>::iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        delete *it;
+        it = m_actors.erase(it);
+    }
+}
+
+StudentWorld::~StudentWorld(){
+    cleanUp();
 }
 
 
