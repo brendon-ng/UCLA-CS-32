@@ -12,12 +12,15 @@ Actor::Actor(int imageID, double startX, double startY, Direction dir, int depth
 {
     m_isDead = false;
     m_world = world;
+    m_isBlockingObject = false;
 }
 
 Actor::~Actor(){}
 void Actor::die() {m_isDead = true;}
 bool Actor::isDead() const {return m_isDead;}
 StudentWorld* Actor::getWorld() const {return m_world;}
+bool Actor::isBlockingObject() const {return m_isBlockingObject;}
+void Actor::setBlockingObject() {m_isBlockingObject = true;}
 
 
 
@@ -27,29 +30,36 @@ StudentWorld* Actor::getWorld() const {return m_world;}
 Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int depth, StudentWorld* world)
 : Actor(imageID, startX, startY, dir, depth, world)
 {
+    setBlockingObject();
 }
 
 Moveable::~Moveable(){}
 
 void Moveable::moveSelf(Direction dir, int steps) {
     setDirection(dir);
+    int newX = getX();
+    int newY = getY();
     switch (dir) {
         case up:
-            moveTo(getX(), getY()+steps);
+            newY += steps;
             break;
         case down:
-            moveTo(getX(), getY()-steps);
+            newY -= steps;
             break;
         case right:
-            moveTo(getX()+steps, getY());
+            newX += steps;
             break;
         case left:
-            moveTo(getX()-steps, getY());
+            newX -= steps;
             break;
-            
+
         default:
             break;
     }
+    
+    // Don't move if its blocked
+    if (!getWorld()->isBlocked(this, newX, newY))
+        moveTo(newX, newY);
     
 }
 
@@ -127,6 +137,7 @@ void Penelope::doSomething(){
 Wall::Wall(double startX, double startY, StudentWorld* world)
 : Actor(IID_WALL, startX, startY, right, 0, world)
 {
+    setBlockingObject();
 }
 
 Wall::~Wall() {}

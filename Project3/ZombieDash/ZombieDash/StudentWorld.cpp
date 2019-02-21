@@ -141,6 +141,40 @@ void StudentWorld::cleanUp()
     }
 }
 
+bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
+    // Top right coordinates
+    int maxx = x+SPRITE_WIDTH-1;
+    int maxy = y+SPRITE_HEIGHT-1;
+    
+    // Check every actor
+    for(list<Actor*>::const_iterator it = m_actors.begin(); it!=m_actors.end(); it++){
+        if(*it == actor)
+            continue;
+        if(!(*it)->isBlockingObject())
+            continue;
+        
+        // Actor coords
+        int actorX = (*it)->getX();
+        int actorY = (*it)->getY();
+        int actorMaxX = actorX + SPRITE_WIDTH - 1;
+        int actorMaxY = actorY + SPRITE_HEIGHT - 1;
+        
+        // Bottom Left corner
+        if(actorX <= x && x <= actorMaxX && actorY <= y && y <= actorMaxY)
+            return true;
+        // Top Left corner
+        if(actorX <= x && x <= actorMaxX && actorY <= maxy && maxy <= actorMaxY)
+            return true;
+        // Top Right corner
+        if(actorX <= maxx && maxx <= actorMaxX && actorY <= maxy && maxy <= actorMaxY)
+            return true;
+        // Bottom Right corner
+        if(actorX <= maxx && maxx <= actorMaxX && actorY <= y && y <= actorMaxY)
+            return true;
+    }
+    return false;
+}
+
 StudentWorld::~StudentWorld(){
     cleanUp();
 }

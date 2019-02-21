@@ -15,10 +15,16 @@ public:
     virtual void doSomething() = 0;
     bool isDead() const;
     void die();
+    bool isBlockingObject() const;
+    
+protected:
+    void setBlockingObject();
     StudentWorld* getWorld() const;
+    
 private:
     bool m_isDead;
     StudentWorld* m_world;
+    bool m_isBlockingObject;
     
 };
 

@@ -16,6 +16,7 @@ public:
     virtual int move();
     virtual void cleanUp();
     virtual ~StudentWorld();
+    bool isBlocked(Actor* actor, int x, int y) const;
 
 private:
     int m_citizensLeft;
