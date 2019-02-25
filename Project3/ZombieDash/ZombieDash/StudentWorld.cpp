@@ -6,6 +6,8 @@
 #include <list>
 using namespace std;
 
+#include <math.h>
+
 GameWorld* createStudentWorld(string assetPath)
 {
 	return new StudentWorld(assetPath);
@@ -23,6 +25,8 @@ int StudentWorld::init()
 {
     // Initialize variables
     m_citizensLeft = 0;
+    m_zombiesLeft = 0;
+    m_finishedLevel = false;
     
     // Get level file
     Level lev(assetPath());
@@ -64,16 +68,20 @@ int StudentWorld::init()
                     case Level::empty:
                         break;
                     case Level::exit:
+                        m_actors.push_back(new Exit(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::player:
-                        m_actors.push_back(new Penelope(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
+                        m_penelope = new Penelope(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this);
                         break;
                     case Level::dumb_zombie:
+                        m_zombiesLeft++;
                         break;
                     case Level::smart_zombie:
+                        m_zombiesLeft++;
                         break;
                     case Level::citizen:
                         m_citizensLeft++;
+                        m_actors.push_back(new Citizen(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::wall:
                         m_actors.push_back(new Wall(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
@@ -108,10 +116,14 @@ int StudentWorld::move()
             (*it)->doSomething();
         it++;
     }
+    if(!m_penelope->isDead())
+        m_penelope->doSomething();
+    else
+        return GWSTATUS_PLAYER_DIED;
     
     // If all citizens AND Penelope have used the exit
-    //if()
-    //    return GWSTATUS_FINISHED_LEVEL;
+    if(m_finishedLevel)
+        return GWSTATUS_FINISHED_LEVEL;
     
     // Delete any actors that have died
     it = m_actors.begin();
@@ -139,6 +151,11 @@ void StudentWorld::cleanUp()
         delete *it;
         it = m_actors.erase(it);
     }
+    delete m_penelope;
+}
+
+void StudentWorld::finishLevel() {
+    m_finishedLevel = true;
 }
 
 bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
@@ -172,7 +189,123 @@ bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
         if(actorX <= maxx && maxx <= actorMaxX && actorY <= y && y <= actorMaxY)
             return true;
     }
+    
+    if(m_penelope == actor)
+        return false;
+    // Actor coords
+    int actorX = m_penelope->getX();
+    int actorY = m_penelope->getY();
+    int actorMaxX = actorX + SPRITE_WIDTH - 1;
+    int actorMaxY = actorY + SPRITE_HEIGHT - 1;
+    
+    // Bottom Left corner
+    if(actorX <= x && x <= actorMaxX && actorY <= y && y <= actorMaxY)
+        return true;
+    // Top Left corner
+    if(actorX <= x && x <= actorMaxX && actorY <= maxy && maxy <= actorMaxY)
+        return true;
+    // Top Right corner
+    if(actorX <= maxx && maxx <= actorMaxX && actorY <= maxy && maxy <= actorMaxY)
+        return true;
+    // Bottom Right corner
+    if(actorX <= maxx && maxx <= actorMaxX && actorY <= y && y <= actorMaxY)
+        return true;
+    
     return false;
+}
+
+Actor* StudentWorld::penelope() const {
+    return m_penelope;
+}
+
+int StudentWorld::citizensLeft() const {return m_citizensLeft;}
+void StudentWorld::decrementCitizens() {m_citizensLeft--;}
+int StudentWorld::zombiesLeft() const {return m_zombiesLeft;}
+
+double StudentWorld::getDistance(const Actor* a1, const Actor* a2) const{
+    return(sqrt(pow(static_cast<double>(a1->getX() - a2->getX()), 2.0) +
+                pow(static_cast<double>(a1->getY() - a2->getY()), 2.0)));
+}
+
+double StudentWorld::getDistance(const int x, const int y, const Actor* a) const{
+    return(sqrt(pow(static_cast<double>(x - a->getX()), 2.0) +
+                pow(static_cast<double>(y - a->getY()), 2.0)));
+}
+
+bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
+
+    if(getDistance(a1, a2) <= EUCLIDEAN_DISTANCE)
+        return true;
+    else
+        return false;
+}
+
+double StudentWorld::distToNearestZombie(const Actor* a) const {
+    double dist = -1.0;
+    
+    list<Actor*>::const_iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if((*it)->isZombie() && !(*it)->isDead() ){
+            if(dist < 0)
+                dist = getDistance(a, *it);
+            else{
+                if(getDistance(a, *it) < dist)
+                    dist = getDistance(a, *it);
+            }
+        }
+        it++;
+    }
+    
+    return dist;
+}
+
+double StudentWorld::distToNearestZombie(const int x, const int y) const {
+    double dist = -1.0;
+    
+    list<Actor*>::const_iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if((*it)->isZombie() && !(*it)->isDead() ){
+            if(dist < 0)
+                dist = getDistance(x,y, *it);
+            else{
+                if(getDistance(x,y, *it) < dist)
+                    dist = getDistance(x,y, *it);
+            }
+        }
+        it++;
+    }
+    
+    return dist;
+}
+
+Actor* StudentWorld::getOverlapper(const Actor* a, bool human) const {
+    list<Actor*>::const_iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if((*it)->isHuman() && human ){
+            if(isOverlapping(*it, a))
+                return (*it);
+        }
+        if((*it)->isZombie() && !human){
+            if(isOverlapping(*it, a))
+                return (*it);
+        }
+        it++;
+    }
+    return NULL;
+}
+
+void StudentWorld::addZombie(int x, int y) {
+    int r = rand() % 10;
+    //if(r < 3)
+        //Add smart Zombie
+    //else
+        //add dumb Zombie
+    
+    m_zombiesLeft++;
+
 }
 
 StudentWorld::~StudentWorld(){
