@@ -40,6 +40,7 @@ Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int
 : Actor(imageID, startX, startY, dir, depth, world)
 {
     setBlockingObject();
+    m_paralyze = true;
 }
 
 Moveable::~Moveable(){}
@@ -75,6 +76,81 @@ bool Moveable::moveSelf(Direction dir, int steps) {
     // return false if it is blocked
     return false;
     
+}
+
+bool Moveable::isParalyzed() const {return m_paralyze;}
+void Moveable::setParalyze(bool p){m_paralyze = p;}
+
+
+void Moveable::follow(Actor *a, int step) {
+    int a_x = a->getX();
+    int a_y = a->getY();
+    int col = getX() / LEVEL_WIDTH;
+    int row = getY() / LEVEL_HEIGHT;
+    int a_col = a_x / LEVEL_WIDTH;
+    int a_row = a_y / LEVEL_HEIGHT;
+    // If it is in the same column
+    if(col == a_col) {
+        if(a_row > row){
+            if(moveSelf(up, step)) // if move is successful
+                return;
+        }
+        else if (a_row < row) {
+            if(moveSelf(down, step)) // if move is successful
+                return;
+        }
+    }
+    // If it is in the same row
+    else if(row == a_row){
+        if(a_col > col){
+            if(moveSelf(right, step)) // if move is successful
+                return;
+        }
+        else if (a_col < col) {
+            if(moveSelf(left, step)) // if move is successful
+                return;
+        }
+    }
+    // Not in the same row or col
+    else {
+        // randomize vertical or horizontal first
+        bool moveVertically = rand() % 2;
+        
+        Direction dir;
+        Direction backupdir;
+        
+        if(moveVertically){
+            if(a_row > row)
+                dir = up;
+            else
+                dir = down;
+            
+            if(a_col > col)
+                backupdir = right;
+            else
+                backupdir = left;
+        }
+        else {
+            if(a_col > col)
+                dir = right;
+            else
+                dir = left;
+            
+            if(a_row > row)
+                backupdir = up;
+            else
+                backupdir = down;
+        }
+        
+        // Try moving in first direction, then other, if both fail, function moveso n
+        if(moveSelf(dir, step))
+            return;
+        else{
+            if(moveSelf(backupdir, step))
+                return;
+        }
+        
+    }
 }
 
 //////////////////////////////////
@@ -176,14 +252,13 @@ void Penelope::doSomething(){
 Citizen::Citizen(double startX, double startY, StudentWorld* world)
 : Human(IID_CITIZEN, startX, startY, right, 0, world)
 {
-    m_paralyze = true;
 }
 
 Citizen::~Citizen() {}
 
 void Citizen::doSomething() {
     // Switch paralyze variable every tick
-    m_paralyze = !m_paralyze;
+    setParalyze(!isParalyzed());
     
     // Check to see if it is currently alive
     if(isDead())
@@ -198,142 +273,236 @@ void Citizen::doSomething() {
         die();
         getWorld()->playSound(SOUND_ZOMBIE_BORN);
         getWorld()->increaseScore(-1000);
-        getWorld()->addZombie(getX(), getY());
+        
+        int r = rand() % 10;
+        if(r < 3)
+            getWorld()->addActor(new SmartZombie(getX(), getY(), getWorld()));
+        else
+            getWorld()->addActor(new DumbZombie(getX(), getY(), getWorld()));
+        
+        getWorld()->incrementZombies();
+
         return;
     }
     
     // Paralysis ticks
-    if(m_paralyze)
+    if(isParalyzed())
         return;
     
     // Determine Distance to penelope
     double dist_p = getWorld()->getDistance(this, getWorld()->penelope());
     
     // Determine distance to nearest zombie
-    double dist_z = getWorld()->distToNearestZombie(this);
+    double dist_z = getWorld()->getDistance(this, getWorld()->nearestMoveable(this, false));
     
     
     // If citizen wants to follow Penelope
-    if((getWorld()->zombiesLeft()==0 || dist_p < dist_z) && dist_p <= 80) {
-
-        int p_x = getWorld()->penelope()->getX();
-        int p_y = getWorld()->penelope()->getY();
-        int col = getX() / LEVEL_WIDTH;
-        int row = getY() / LEVEL_HEIGHT;
-        int p_col = p_x / LEVEL_WIDTH;
-        int p_row = p_y / LEVEL_HEIGHT;
-        // If it is in the same column
-        if(col == p_col) {
-            if(p_row > row){
-                if(moveSelf(up, CITIZEN_STEP_SIZE)) // if move is successful
-                    return;
-            }
-            else if (p_row < row) {
-                if(moveSelf(down, CITIZEN_STEP_SIZE)) // if move is successful
-                    return;
-            }
+    if((getWorld()->zombiesLeft()==0 || dist_p < dist_z) && dist_p <= DISTANCE_TO_FOLLOW) {
+        follow(getWorld()->penelope(), CITIZEN_STEP_SIZE);
+    }
+    
+    // If Citizen is to run away
+    if(dist_z <= DISTANCE_TO_FOLLOW) {
+        double upDist;
+        double downDist;
+        double rightDist;
+        double leftDist;
+        upDist = downDist = rightDist = leftDist = -1.0;
+        
+        // Get hypothetical distances to zombies
+        if(!getWorld()->isBlocked(this, getX(), getY()+CITIZEN_STEP_SIZE)){
+            Actor* nearest = getWorld()->nearestMoveable(getX(), getY()+CITIZEN_STEP_SIZE, false);
+            upDist = getWorld()->getDistance(getX(), getY()+CITIZEN_STEP_SIZE, nearest);
         }
-        // If it is in the same row
-        else if(row == p_row){
-            if(p_col > col){
-                if(moveSelf(right, CITIZEN_STEP_SIZE)) // if move is successful
-                    return;
-            }
-            else if (p_col < col) {
-                if(moveSelf(left, CITIZEN_STEP_SIZE)) // if move is successful
-                    return;
-            }
+        if(!getWorld()->isBlocked(this, getX(), getY()-CITIZEN_STEP_SIZE)){
+            Actor* nearest = getWorld()->nearestMoveable(getX(), getY()-CITIZEN_STEP_SIZE, false);
+            downDist = getWorld()->getDistance(getX(), getY()-CITIZEN_STEP_SIZE, nearest);
         }
-        // Not in the same row or col
+        if(!getWorld()->isBlocked(this, getX()+CITIZEN_STEP_SIZE, getY())){
+            Actor* nearest = getWorld()->nearestMoveable(getX()+CITIZEN_STEP_SIZE, getY(), false);
+            rightDist = getWorld()->getDistance(getX()+CITIZEN_STEP_SIZE, getY(), nearest);
+        }
+        if(!getWorld()->isBlocked(this, getX()-CITIZEN_STEP_SIZE, getY())){
+            Actor* nearest = getWorld()->nearestMoveable(getX()-CITIZEN_STEP_SIZE, getY(), false);
+            leftDist = getWorld()->getDistance(getX()-CITIZEN_STEP_SIZE, getY(), nearest);
+        }
+        
+        // If none are better than current spot, dont move
+        if(upDist <= dist_z && downDist <= dist_z && leftDist <= dist_z && rightDist <= dist_z)
+            return;
         else {
-            // randomize vertical or horizontal first
-            bool moveVertically = rand() % 2;
-            
-            Direction dir;
-            Direction backupdir;
-            
-            if(moveVertically){
-                if(p_row > row)
-                    dir = up;
-                else
-                    dir = down;
-                
-                if(p_col > col)
-                    backupdir = right;
-                else
-                    backupdir = left;
-            }
-            else {
-                if(p_col > col)
-                    dir = right;
-                else
-                    dir = left;
-                
-                if(p_row > row)
-                    backupdir = up;
-                else
-                    backupdir = down;
-            }
-            
-            // Try moving in first direction, then other, if both fail, function moveso n
-            if(moveSelf(dir, CITIZEN_STEP_SIZE))
-                return;
-            else{
-                if(moveSelf(backupdir, CITIZEN_STEP_SIZE))
+            // Find max distance and try to move in that direction
+            if(upDist >= downDist && upDist >= leftDist && upDist >= rightDist){
+                if(moveSelf(up, CITIZEN_STEP_SIZE))
                     return;
             }
-            
+            else if(downDist >= upDist && downDist >= leftDist && downDist >= rightDist){
+                if(moveSelf(down, CITIZEN_STEP_SIZE))
+                    return;
+            }
+            else if(rightDist >= downDist && rightDist >= leftDist && rightDist >= upDist) {
+                if(moveSelf(right, CITIZEN_STEP_SIZE))
+                    return;
+            }
+            else if(leftDist >= downDist && leftDist >= upDist && leftDist >= rightDist){
+                if(moveSelf(left, CITIZEN_STEP_SIZE))
+                    return;
+            }
         }
-        
-        // If Citizen is to run away
-        if(dist_z <= 80) {
-            double upDist;
-            double downDist;
-            double rightDist;
-            double leftDist;
-            upDist = downDist = rightDist = leftDist = -1.0;
-            
-            // Get hypothetical distances to zombies
-            if(!getWorld()->isBlocked(this, getX(), getY()+CITIZEN_STEP_SIZE)){
-                upDist = getWorld()->distToNearestZombie(getX(), getY()+CITIZEN_STEP_SIZE);
-            }
-            if(!getWorld()->isBlocked(this, getX(), getY()-CITIZEN_STEP_SIZE)){
-                downDist = getWorld()->distToNearestZombie(getX(), getY()-CITIZEN_STEP_SIZE);
-            }
-            if(!getWorld()->isBlocked(this, getX()+CITIZEN_STEP_SIZE, getY())){
-                rightDist = getWorld()->distToNearestZombie(getX()+CITIZEN_STEP_SIZE, getY());
-            }
-            if(!getWorld()->isBlocked(this, getX()-CITIZEN_STEP_SIZE, getY())){
-                leftDist = getWorld()->distToNearestZombie(getX()-CITIZEN_STEP_SIZE, getY());
-            }
-            
-            // If none are better than current spot, dont move
-            if(upDist <= dist_z && downDist <= dist_z && leftDist <= dist_z && rightDist <= dist_z)
-                return;
-            else {
-                // Find max distance and try to move in that direction
-                if(upDist >= downDist && upDist >= leftDist && upDist >= rightDist){
-                    if(moveSelf(up, CITIZEN_STEP_SIZE))
-                        return;
-                }
-                else if(downDist >= upDist && downDist >= leftDist && downDist >= rightDist){
-                    if(moveSelf(down, CITIZEN_STEP_SIZE))
-                        return;
-                }
-                else if(rightDist >= downDist && rightDist >= leftDist && rightDist >= upDist) {
-                    if(moveSelf(right, CITIZEN_STEP_SIZE))
-                        return;
-                }
-                else if(leftDist >= downDist && leftDist >= upDist && leftDist >= rightDist){
-                    if(moveSelf(left, CITIZEN_STEP_SIZE))
-                        return;
-                }
-            }
-         }
-        
     }
 }
 
+/////////////////////////////////
+///// ZOMBIE implementation /////
+/////////////////////////////////
+
+Zombie::Zombie(double startX, double startY, StudentWorld* world)
+: Moveable(IID_ZOMBIE, startX, startY, right, 0, world)
+{
+    m_movementPlanDistance = 0;
+    setIsZombie();
+}
+
+Zombie::~Zombie() {}
+
+void Zombie::doSomething() {
+    // Switch paralyze variable every tick
+    setParalyze(!isParalyzed());
+    
+    // Check to see if it is currently alive
+    if(isDead())
+        return;
+    
+    // Paralysis ticks
+    if(isParalyzed())
+        return;
+    
+    // Check to see if a person is in front
+    int vomitX = -1;
+    int vomitY = -1;
+    if(getDirection() == left){
+        vomitX = getX()-SPRITE_WIDTH;
+        vomitY = getY();
+    }
+    else if(getDirection() == right){
+        vomitX = getX()+SPRITE_WIDTH;
+        vomitY = getY();
+    }
+    else if(getDirection() == up){
+        vomitX = getX();
+        vomitY = getY()+SPRITE_HEIGHT;
+    }
+    else if(getDirection() == down){
+        vomitX = getX();
+        vomitY = getY()-SPRITE_HEIGHT;
+    }
+    Actor* vom = new Vomit(vomitX, vomitY, getWorld());
+    int randThree = rand() % 3; // One in Three chance it will vomit
+    if(getWorld()->getOverlapper(vom, true, true) != NULL && randThree == 0){
+        getWorld()->addActor(vom);
+        getWorld()->playSound(SOUND_ZOMBIE_VOMIT);
+        return;
+    }
+    else
+        delete vom;
+    
+    // Check to see if it needs a new movement plan
+    if(m_movementPlanDistance == 0) {
+        pickNewMovementPlan();
+    }
+    
+    // Determine a destination coordinates and check move
+    if(moveSelf(getDirection(), ZOMBIE_STEP_SIZE))
+        m_movementPlanDistance--;
+    else
+        m_movementPlanDistance = 0;
+    
+    
+}
+
+
+int Zombie::movementPlanDistance() const {return m_movementPlanDistance;}
+void Zombie::setMovementPlanDistance(int dist) {m_movementPlanDistance = dist;}
+
+
+
+//////////////////////////////////////
+///// DUMB ZOMBIE implementation /////
+//////////////////////////////////////
+
+DumbZombie::DumbZombie(double startX, double startY, StudentWorld* world)
+: Zombie(startX, startY, world)
+{
+}
+
+DumbZombie::~DumbZombie(){}
+
+void DumbZombie::pickNewMovementPlan(){
+    int randDist = (rand() % 8) + 3;
+    setMovementPlanDistance(randDist);
+    int randDir = rand() % 4;
+    switch (randDir) {
+        case 0:
+            setDirection(up);
+            break;
+        case 1:
+            setDirection(down);
+            break;
+        case 2:
+            setDirection(right);
+            break;
+        case 3:
+            setDirection(left);
+            break;
+        default:
+            break;
+    }
+}
+
+
+//////////////////////////////////////
+///// SMART ZOMBIE implementation /////
+//////////////////////////////////////
+
+SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
+: Zombie(startX, startY, world)
+{
+}
+
+SmartZombie::~SmartZombie(){}
+
+void SmartZombie::pickNewMovementPlan(){
+    int randDist = (rand() % 8) + 3;
+    setMovementPlanDistance(randDist);
+    
+    Actor* nearest = getWorld()->nearestMoveable(this, true);
+    double dist = getWorld()->getDistance(nearest, this);
+    
+    if(dist > DISTANCE_TO_FOLLOW){
+        int randDir = rand() % 4;
+        switch (randDir) {
+            case 0:
+                setDirection(up);
+                break;
+            case 1:
+                setDirection(down);
+                break;
+            case 2:
+                setDirection(right);
+                break;
+            case 3:
+                setDirection(left);
+                break;
+            default:
+                break;
+        }
+    }
+    else {
+        follow(nearest, ZOMBIE_STEP_SIZE);
+    }
+    
+    
+}
 
 
 ///////////////////////////////////////
@@ -364,7 +533,7 @@ Exit::~Exit() {}
 
 void Exit::doSomething() {
     Actor* cit = NULL;
-    cit = getWorld()->getOverlapper(this, true);
+    cit = getWorld()->getOverlapper(this, true, false);
     if(cit != NULL){
         getWorld()->increaseScore(500);
         cit->die();

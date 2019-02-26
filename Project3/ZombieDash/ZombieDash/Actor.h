@@ -7,7 +7,10 @@ class StudentWorld;
 const int MAX_INFECTION = 500;
 const int PLAYER_STEP_SIZE = 4;
 const int CITIZEN_STEP_SIZE = 2;
+const int ZOMBIE_STEP_SIZE = 1;
 const double EUCLIDEAN_DISTANCE = 10.0;
+const double DISTANCE_TO_FOLLOW = 80.0;
+
 
 class Actor : public GraphObject
 {
@@ -48,7 +51,13 @@ public:
     Moveable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
     virtual ~Moveable();
     bool moveSelf(Direction dir, int steps);
+    bool isParalyzed() const;
+    void setParalyze(bool p);
+    void follow(Actor* a, int step);
+private:
+    bool m_paralyze;
 };
+
 
 class Human : public Moveable
 {
@@ -84,8 +93,36 @@ public:
     Citizen(double startX, double startY, StudentWorld* world);
     virtual ~Citizen();
     virtual void doSomething();
+};
+
+class Zombie : public Moveable
+{
+public:
+    Zombie(double startX, double startY, StudentWorld* world);
+    virtual ~Zombie();
+    virtual void doSomething();
+    virtual void pickNewMovementPlan() = 0;
+protected:
+    int movementPlanDistance() const;
+    void setMovementPlanDistance(int dist);
 private:
-    bool m_paralyze;
+    int m_movementPlanDistance;
+};
+
+class DumbZombie : public Zombie
+{
+public:
+    DumbZombie(double startX, double startY, StudentWorld* world);
+    virtual ~DumbZombie();
+    virtual void pickNewMovementPlan();
+};
+
+class SmartZombie : public Zombie
+{
+public:
+    SmartZombie(double startX, double startY, StudentWorld* world);
+    virtual ~SmartZombie();
+    virtual void pickNewMovementPlan();
 };
 
 class Overlappable: public Actor
@@ -112,6 +149,17 @@ public:
     virtual void doSomething();
 };
 
+class Vomit : public Actor
+{
+public:
+    Vomit(double startX, double startY, StudentWorld* world)
+    : Actor(IID_VOMIT, startX, startY, right, 0, world)
+    {
+        
+    }
+    virtual ~Vomit(){}
+    virtual void doSomething() {}
+};
 
 
 #endif // ACTOR_H_

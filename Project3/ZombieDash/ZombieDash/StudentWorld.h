@@ -20,22 +20,24 @@ public:
     virtual void cleanUp();
     
     void finishLevel();
-    void addZombie(int x, int y);
+    void addActor(Actor* a);
     
     double getDistance(const Actor* a1, const Actor* a2) const;
     double getDistance(const int x, const int y, const Actor* a) const;
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
-    Actor* getOverlapper(const Actor* a, bool human) const;
+    Actor* getOverlapper(const Actor* a, bool human, bool penelope) const;
     bool isBlocked(Actor* actor, int x, int y) const;
-    double distToNearestZombie(const Actor* a) const;
-    double distToNearestZombie(const int x, const int y) const;
+    Actor* nearestMoveable(const Actor* a, const bool human) const;
+    Actor* nearestMoveable(const int x, const int y, const bool human) const;
     
     
     //Accessors and Modifiers
     Actor* penelope() const;
     int citizensLeft() const;
     int zombiesLeft() const;
+    void incrementZombies();
     void decrementCitizens();
+    
     
 
 private:

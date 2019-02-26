@@ -7,6 +7,7 @@
 using namespace std;
 
 #include <math.h>
+#include <sstream>
 
 GameWorld* createStudentWorld(string assetPath)
 {
@@ -30,31 +31,11 @@ int StudentWorld::init()
     
     // Get level file
     Level lev(assetPath());
-    string levelFile;
-    switch (getLevel()) {
-        case 1:
-            levelFile = "level01.txt";
-            break;
-        case 2:
-            levelFile = "level02.txt";
-            break;
-        case 3:
-            levelFile = "level03.txt";
-            break;
-        case 4:
-            levelFile = "level04.txt";
-            break;
-        case 5:
-            levelFile = "level05.txt";
-            break;
-        case 6:
-            levelFile = "level06.txt";
-            break;
-        default: // If level file is unfound, the player has won
-            return GWSTATUS_PLAYER_WON;
-            break;
-    }
-    Level::LoadResult result = lev.loadLevel(levelFile);
+    stringstream levelFile;
+    levelFile << "level" << getLevel()/10 << getLevel()%10 << ".txt" ;
+// CHANGE THIS
+    Level::LoadResult result = lev.loadLevel(levelFile.str());
+//    Level::LoadResult result = lev.loadLevel("level02.txt");
     if(result == Level::load_fail_file_not_found)
         return GWSTATUS_PLAYER_WON;
     else if (result == Level::load_fail_bad_format)
@@ -74,9 +55,11 @@ int StudentWorld::init()
                         m_penelope = new Penelope(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this);
                         break;
                     case Level::dumb_zombie:
+                        m_actors.push_back(new DumbZombie(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         m_zombiesLeft++;
                         break;
                     case Level::smart_zombie:
+                        m_actors.push_back(new SmartZombie(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         m_zombiesLeft++;
                         break;
                     case Level::citizen:
@@ -122,8 +105,10 @@ int StudentWorld::move()
         return GWSTATUS_PLAYER_DIED;
     
     // If all citizens AND Penelope have used the exit
-    if(m_finishedLevel)
+    if(m_finishedLevel){
+        playSound(SOUND_LEVEL_FINISHED);
         return GWSTATUS_FINISHED_LEVEL;
+    }
     
     // Delete any actors that have died
     it = m_actors.begin();
@@ -192,7 +177,7 @@ bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
     
     if(m_penelope == actor)
         return false;
-    // Actor coords
+    // Penelope coords
     int actorX = m_penelope->getX();
     int actorY = m_penelope->getY();
     int actorMaxX = actorX + SPRITE_WIDTH - 1;
@@ -214,13 +199,11 @@ bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
     return false;
 }
 
-Actor* StudentWorld::penelope() const {
-    return m_penelope;
-}
-
+Actor* StudentWorld::penelope() const {return m_penelope;}
 int StudentWorld::citizensLeft() const {return m_citizensLeft;}
 void StudentWorld::decrementCitizens() {m_citizensLeft--;}
 int StudentWorld::zombiesLeft() const {return m_zombiesLeft;}
+void StudentWorld::incrementZombies() {m_zombiesLeft++;}
 
 double StudentWorld::getDistance(const Actor* a1, const Actor* a2) const{
     return(sqrt(pow(static_cast<double>(a1->getX() - a2->getX()), 2.0) +
@@ -233,54 +216,13 @@ double StudentWorld::getDistance(const int x, const int y, const Actor* a) const
 }
 
 bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
-
     if(getDistance(a1, a2) <= EUCLIDEAN_DISTANCE)
         return true;
     else
         return false;
 }
 
-double StudentWorld::distToNearestZombie(const Actor* a) const {
-    double dist = -1.0;
-    
-    list<Actor*>::const_iterator it;
-    it = m_actors.begin();
-    while(it != m_actors.end()){
-        if((*it)->isZombie() && !(*it)->isDead() ){
-            if(dist < 0)
-                dist = getDistance(a, *it);
-            else{
-                if(getDistance(a, *it) < dist)
-                    dist = getDistance(a, *it);
-            }
-        }
-        it++;
-    }
-    
-    return dist;
-}
-
-double StudentWorld::distToNearestZombie(const int x, const int y) const {
-    double dist = -1.0;
-    
-    list<Actor*>::const_iterator it;
-    it = m_actors.begin();
-    while(it != m_actors.end()){
-        if((*it)->isZombie() && !(*it)->isDead() ){
-            if(dist < 0)
-                dist = getDistance(x,y, *it);
-            else{
-                if(getDistance(x,y, *it) < dist)
-                    dist = getDistance(x,y, *it);
-            }
-        }
-        it++;
-    }
-    
-    return dist;
-}
-
-Actor* StudentWorld::getOverlapper(const Actor* a, bool human) const {
+Actor* StudentWorld::getOverlapper(const Actor* a, bool human, bool penelope) const {
     list<Actor*>::const_iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
@@ -294,18 +236,50 @@ Actor* StudentWorld::getOverlapper(const Actor* a, bool human) const {
         }
         it++;
     }
+    
+    if(penelope && isOverlapping(m_penelope, a))
+        return m_penelope;
+    
     return NULL;
 }
 
-void StudentWorld::addZombie(int x, int y) {
-    int r = rand() % 10;
-    //if(r < 3)
-        //Add smart Zombie
-    //else
-        //add dumb Zombie
+Actor* StudentWorld::nearestMoveable(const int x, const int y, const bool human) const {
+    double dist = -1.0;
+    Actor* nearest = NULL;
     
-    m_zombiesLeft++;
+    list<Actor*>::const_iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if(!(*it)->isDead() && (((*it)->isZombie() && !human) || ((*it)->isHuman() && human))){
+            if(dist < 0){
+                dist = getDistance(x,y, *it);
+                nearest = *it;
+            }
+            else{
+                if(getDistance(x,y, *it) < dist){
+                    dist = getDistance(x,y, *it);
+                    nearest = *it;
+                }
+            }
+        }
+        it++;
+    }
+    
+    // If we are looking for a human, check Penelope's distance
+    if(human && getDistance(x,y, m_penelope) < dist) {
+        dist = getDistance(x,y, m_penelope);
+        nearest = m_penelope;
+    }
+    
+    return nearest;
+}
 
+Actor* StudentWorld::nearestMoveable(const Actor* a, const bool human) const {
+    return nearestMoveable(a->getX(), a->getY(), human);
+}
+
+void StudentWorld::addActor(Actor *a) {
+    m_actors.push_back(a);
 }
 
 StudentWorld::~StudentWorld(){
