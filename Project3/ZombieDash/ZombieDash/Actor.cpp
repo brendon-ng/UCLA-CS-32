@@ -12,23 +12,18 @@ Actor::Actor(int imageID, double startX, double startY, Direction dir, int depth
 {
     m_isDead = false;
     m_world = world;
-    m_isBlockingObject = false;
-    m_isOverlappable = false;
-    m_isZombie = false;
-    m_isHuman = false;
 }
 
 void Actor::die() {m_isDead = true;}
 bool Actor::isDead() const {return m_isDead;}
 StudentWorld* Actor::getWorld() const {return m_world;}
-bool Actor::isBlockingObject() const {return m_isBlockingObject;}
-void Actor::setBlockingObject() {m_isBlockingObject = true;}
-bool Actor::isOverlappable() const {return m_isOverlappable;}
-void Actor::setOverlappable() {m_isOverlappable = true;}
-bool Actor::isZombie() const {return m_isZombie;}
-void Actor::setIsZombie() {m_isZombie = true;}
-bool Actor::isHuman() const {return m_isHuman;}
-void Actor::setHuman(){m_isHuman = true;}
+
+bool Actor::isBlockingObject() const {return false;}
+bool Actor::blocksFlames() const {return false;}
+bool Actor::isZombie() const {return false;}
+bool Actor::isHuman() const {return false;}
+bool Actor::isDamageable() const {return false;}
+
 
 
 
@@ -38,7 +33,6 @@ void Actor::setHuman(){m_isHuman = true;}
 Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int depth, StudentWorld* world)
 : Actor(imageID, startX, startY, dir, depth, world)
 {
-    setBlockingObject();
     m_paralyze = true;
 }
 
@@ -75,6 +69,8 @@ bool Moveable::moveSelf(Direction dir, int steps) {
     
 }
 
+bool Moveable::isBlockingObject() const {return true;}
+bool Moveable::isDamageable() const {return true;}
 bool Moveable::isParalyzed() const {return m_paralyze;}
 void Moveable::setParalyze(bool p){m_paralyze = p;}
 
@@ -159,10 +155,11 @@ Human::Human(int imageID, double startX,double startY, Direction dir, int depth,
 {
     m_infectionCount = 0;
     m_infectionStatus = false;
-    setHuman();
 }
 
 bool Human::isInfected() const {return m_infectionStatus;}
+
+void Human::infect() {m_infectionStatus = true;}
 
 void Human::uninfect() {m_infectionStatus = false;}
 
@@ -172,19 +169,22 @@ void Human::incrementInfectionCount() {
     m_infectionCount++;
 }
 
+bool Human::isHuman() const {return true;}
+
 ////////////////////////////////
 ///// PLAYER implementation ////
 ////////////////////////////////
+
 Penelope::Penelope(double startX, double startY, StudentWorld* world)
 : Human(IID_PLAYER, startX, startY, right, 0, world)
 {
-    m_mines = m_charges = m_vaccines = 0;
+    m_mines = m_charges = m_vaccines = 10;
 }
 
 void Penelope::doSomething(){
     // Check to see if she is alive
-    //if(isDead())
-    //    return;
+    if(isDead())
+        return;
     
     // Check to see if she is infected
     if(isInfected())
@@ -199,7 +199,7 @@ void Penelope::doSomething(){
     if(getWorld()->getKey(key)){
         switch (key) {
             case KEY_PRESS_SPACE:
-                // throw flames
+                fireFlame();
                 break;
             case KEY_PRESS_TAB:
                 // introduce landmine
@@ -240,6 +240,42 @@ void Penelope::doSomething(){
 void Penelope::die() {
     getWorld()->playSound(SOUND_PLAYER_DIE);
     Actor::die();
+}
+
+void Penelope::fireFlame(){
+    if(m_charges <= 0)
+        return;
+    m_charges--;
+    getWorld()->playSound(SOUND_PLAYER_FIRE);
+    for(int i = 1; i<=3; i++){
+        int x = getX();
+        int y = getY();
+        Direction dir = getDirection();
+
+        switch (dir) {
+            case up:
+                y = getY()+i*SPRITE_HEIGHT;
+                break;
+            case down:
+                y = getY()-i*SPRITE_HEIGHT;
+                break;
+            case left:
+                x = getX()-i*SPRITE_HEIGHT;
+                break;
+            case right:
+                x = getX()+i*SPRITE_HEIGHT;
+                break;
+            default:
+                break;
+        }
+
+        if(!getWorld()->flameBlocked(x,y)){
+            getWorld()->addFlame(x, y);
+        }
+        else{
+            break;
+        }
+    }
 }
 
 //////////////////////////////////
@@ -361,7 +397,6 @@ Zombie::Zombie(double startX, double startY, StudentWorld* world)
 : Moveable(IID_ZOMBIE, startX, startY, right, 0, world)
 {
     m_movementPlanDistance = 0;
-    setIsZombie();
 }
 
 void Zombie::doSomething() {
@@ -395,7 +430,7 @@ void Zombie::doSomething() {
         vomitX = getX();
         vomitY = getY()-SPRITE_HEIGHT;
     }
-    Actor* vom = new Vomit(vomitX, vomitY, getWorld());
+    Actor* vom = new Vomit(vomitX, vomitY, getDirection(), getWorld());
     int randThree = rand() % 3; // One in Three chance it will vomit
     if(getWorld()->getOverlapper(vom, true, true) != NULL && randThree == 0){
         getWorld()->addActor(vom);
@@ -422,6 +457,7 @@ void Zombie::doSomething() {
 
 int Zombie::movementPlanDistance() const {return m_movementPlanDistance;}
 void Zombie::setMovementPlanDistance(int dist) {m_movementPlanDistance = dist;}
+bool Zombie::isZombie() const {return true;}
 
 
 
@@ -520,9 +556,7 @@ void SmartZombie::die() {
 ///////////////////////////////////////
 Overlappable::Overlappable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world)
 : Actor(imageID, startX, startY, dir, depth, world)
-{
-    setOverlappable();
-}
+{ }
 
 bool Overlappable::isOverlappingWithPenelope() const {
     return (getWorld()->isOverlapping(this, getWorld()->penelope()));
@@ -552,6 +586,8 @@ void Exit::doSomething() {
     }
 }
 
+bool Exit::blocksFlames() const {return true;}
+
 //////////////////////////////
 ///// PIT implementation /////
 //////////////////////////////
@@ -574,16 +610,80 @@ void Pit::doSomething() {
     }
 }
 
+/////////////////////////////////////
+///// PROJECTILE implementation /////
+/////////////////////////////////////
+
+Projectile::Projectile(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world)
+: Overlappable(imageID, startX, startY, dir, depth, world)
+{
+    m_ticksSinceCreation = 0;
+}
+
+void Projectile::incrementTick() {m_ticksSinceCreation++;}
+int Projectile::ticksSinceCreation() const {return m_ticksSinceCreation;}
+
+
+////////////////////////////////
+///// FLAME implementation /////
+////////////////////////////////
+
+Flame::Flame(double startX, double startY, Direction dir, StudentWorld* world)
+: Projectile(IID_FLAME, startX, startY, dir, 0, world)
+{ }
+
+void Flame::doSomething() {
+    // Check if it is alive
+    if(isDead())
+        return;
+    
+    // If it is after two ticks from creation
+    if(ticksSinceCreation() >= 2) {
+        die();
+        return;
+    }
+    
+    // Damage all objects that overlap
+    getWorld()->damageVictims(this);
+    
+    
+    incrementTick();
+}
+
+////////////////////////////////
+///// VOMIT implementation /////
+////////////////////////////////
+
+Vomit::Vomit(double startX, double startY, Direction dir, StudentWorld* world)
+: Projectile(IID_VOMIT, startX, startY, dir, 0, world)
+{ }
+
+void Vomit::doSomething() {
+    // Check if it is alive
+    if (isDead())
+        return;
+    
+    // If it is after two ticks from creation
+    if(ticksSinceCreation() >= 2) {
+        die();
+        return;
+    }
+    
+    incrementTick();
+    
+    
+}
+
 ///////////////////////////////
 ///// WALL implementation /////
 ///////////////////////////////
 
 Wall::Wall(double startX, double startY, StudentWorld* world)
 : Actor(IID_WALL, startX, startY, right, 0, world)
-{
-    setBlockingObject();
-}
+{ }
 
+bool Wall::isBlockingObject() const {return true;}
+bool Wall::blocksFlames() const {return true;}
 
 void Wall::doSomething()
 {

@@ -21,12 +21,17 @@ public:
     
     void finishLevel();
     void addActor(Actor* a);
+    void addFlame(int x, int y);
+    void damageVictims(const Actor* flame);
+    void infectVictims(const Actor* vomit);
     
     // Status functions
-    bool isBlocked(Actor* actor, int x, int y) const;
+    bool isBlocked(const Actor* actor, int x, int y) const;
+    bool flameBlocked(int x, int y) const;
     double getDistance(const Actor* a1, const Actor* a2) const;
     double getDistance(const int x, const int y, const Actor* a) const;
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
+    bool isOverlapping(int x, int y, const Actor* a1) const;
     Actor* getOverlapper(const Actor* a, bool human, bool penelope) const;
     Actor* nearestMoveable(const Actor* a, const bool human) const;
     Actor* nearestMoveable(const int x, const int y, const bool human) const;

@@ -9,6 +9,7 @@ using namespace std;
 #include <math.h>
 #include <sstream>
 
+
 GameWorld* createStudentWorld(string assetPath)
 {
 	return new StudentWorld(assetPath);
@@ -144,7 +145,7 @@ void StudentWorld::finishLevel() {
     m_finishedLevel = true;
 }
 
-bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
+bool StudentWorld::isBlocked(const Actor* actor, int x, int y) const {
     // Top right coordinates
     int maxx = x+SPRITE_WIDTH-1;
     int maxy = y+SPRITE_HEIGHT-1;
@@ -200,6 +201,18 @@ bool StudentWorld::isBlocked(Actor* actor, int x, int y) const {
     return false;
 }
 
+bool StudentWorld::flameBlocked(int x, int y) const {
+    
+    list<Actor*>::const_iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if((*it)->blocksFlames() && isOverlapping(x, y, *it))
+            return true;
+        it++;
+    }
+    return false;
+}
+
 Actor* StudentWorld::penelope() const {return m_penelope;}
 int StudentWorld::citizensLeft() const {return m_citizensLeft;}
 void StudentWorld::decrementCitizens() {m_citizensLeft--;}
@@ -223,15 +236,22 @@ bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
         return false;
 }
 
+bool StudentWorld::isOverlapping(int x, int y, const Actor* a1) const{
+    if(getDistance(x,y, a1) <= EUCLIDEAN_DISTANCE)
+        return true;
+    else
+        return false;
+}
+
 Actor* StudentWorld::getOverlapper(const Actor* a, bool human, bool penelope) const {
     list<Actor*>::const_iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if((*it)->isHuman() && human ){
+        if((*it)->isHuman() && human && !(*it)->isDead()){
             if(isOverlapping(*it, a))
                 return (*it);
         }
-        if((*it)->isZombie() && !human){
+        if((*it)->isZombie() && !human && !(*it)->isDead()){
             if(isOverlapping(*it, a))
                 return (*it);
         }
@@ -242,6 +262,28 @@ Actor* StudentWorld::getOverlapper(const Actor* a, bool human, bool penelope) co
         return m_penelope;
     
     return NULL;
+}
+
+void StudentWorld::damageVictims(const Actor* flame) {
+    list<Actor*>::iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if(isOverlapping(*it, flame) && (*it)->isDamageable())
+            (*it)->die();
+        it++;
+    }
+}
+
+void StudentWorld::infectVictims(const Actor* vomit) {
+    list<Actor*>::iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if(isOverlapping(*it, vomit) && (*it)->isHuman()){
+            //Human* victim = (*it);
+            //victim->infect();
+        }
+        it++;
+    }
 }
 
 Actor* StudentWorld::nearestMoveable(const int x, const int y, const bool human) const {
@@ -281,6 +323,10 @@ Actor* StudentWorld::nearestMoveable(const Actor* a, const bool human) const {
 
 void StudentWorld::addActor(Actor *a) {
     m_actors.push_back(a);
+}
+
+void StudentWorld::addFlame(int x, int y){
+    m_actors.push_back(new Flame(x,y,0,this));
 }
 
 StudentWorld::~StudentWorld(){

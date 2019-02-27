@@ -23,25 +23,18 @@ public:
     //Accessors and Modifiers
     bool isDead() const;
     virtual void die();
-    bool isBlockingObject() const;
-    bool isOverlappable() const;
-    bool isZombie() const;
-    bool isHuman() const;
+    virtual bool isBlockingObject() const;
+    virtual bool blocksFlames() const;
+    virtual bool isZombie() const;
+    virtual bool isHuman() const;
+    virtual bool isDamageable() const;
     
 protected:
-    void setBlockingObject();
-    void setOverlappable();
-    void setIsZombie();
-    void setHuman();
     StudentWorld* getWorld() const;
     
 private:
     bool m_isDead;
     StudentWorld* m_world;
-    bool m_isBlockingObject;
-    bool m_isOverlappable;
-    bool m_isZombie;
-    bool m_isHuman;
     
 };
 
@@ -53,6 +46,8 @@ public:
     bool moveSelf(Direction dir, int steps);
     void follow(Actor* a, int step);
     
+    virtual bool isBlockingObject() const;
+    virtual bool isDamageable() const;
     bool isParalyzed() const;
     void setParalyze(bool p);
     
@@ -70,6 +65,8 @@ public:
     void uninfect();
     int infectionCount() const;
     void incrementInfectionCount();
+    void infect();
+    virtual bool isHuman() const;
 private:
     bool m_infectionStatus;
     int m_infectionCount;
@@ -86,6 +83,7 @@ private:
     int m_mines;
     int m_charges;
     int m_vaccines;
+    void fireFlame();
 };
 
 class Citizen : public Human
@@ -102,6 +100,7 @@ public:
     Zombie(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
     virtual void pickNewMovementPlan() = 0;
+    virtual bool isZombie() const;
 protected:
     int movementPlanDistance() const;
     void setMovementPlanDistance(int dist);
@@ -137,6 +136,7 @@ class Exit: public Overlappable
 public:
     Exit(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
+    virtual bool blocksFlames() const;
 };
 
 class Pit : public Overlappable
@@ -146,22 +146,40 @@ public:
     virtual void doSomething();
 };
 
+class Projectile : public Overlappable
+{
+public:
+    Projectile(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
+protected:
+    int ticksSinceCreation() const;
+    void incrementTick();
+private:
+    int m_ticksSinceCreation;
+};
+
+class Flame : public Projectile
+{
+public:
+    Flame(double startX, double startY, Direction dir, StudentWorld* world);
+    virtual void doSomething();
+};
+
+class Vomit : public Projectile
+{
+public:
+    Vomit(double startX, double startY, Direction dir, StudentWorld* world);
+    virtual void doSomething();
+    
+};
+
+
 class Wall : public Actor
 {
 public:
     Wall(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
-};
-
-class Vomit : public Actor
-{
-public:
-    Vomit(double startX, double startY, StudentWorld* world)
-    : Actor(IID_VOMIT, startX, startY, right, 0, world)
-    {
-        
-    }
-    virtual void doSomething() {}
+    virtual bool isBlockingObject() const;
+    virtual bool blocksFlames() const;
 };
 
 class VaccineGoodie : public Actor
