@@ -16,13 +16,13 @@ class Actor : public GraphObject
 {
 public:
     Actor(int imageID, double startX, double startY, Direction dir, int depth, StudentWorld* world);
-    virtual ~Actor();
     
     virtual void doSomething() = 0;
     
+
     //Accessors and Modifiers
     bool isDead() const;
-    void die();
+    virtual void die();
     bool isBlockingObject() const;
     bool isOverlappable() const;
     bool isZombie() const;
@@ -49,11 +49,13 @@ class Moveable: public Actor
 {
 public:
     Moveable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
-    virtual ~Moveable();
+
     bool moveSelf(Direction dir, int steps);
+    void follow(Actor* a, int step);
+    
     bool isParalyzed() const;
     void setParalyze(bool p);
-    void follow(Actor* a, int step);
+    
 private:
     bool m_paralyze;
 };
@@ -63,7 +65,6 @@ class Human : public Moveable
 {
 public:
     Human(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
-    virtual ~Human();
     
     bool isInfected() const;
     void uninfect();
@@ -79,8 +80,8 @@ class Penelope : public Human
 {
 public:
     Penelope(double startX, double startY, StudentWorld* world);
-    virtual ~Penelope();
     virtual void doSomething();
+    virtual void die();
 private:
     int m_mines;
     int m_charges;
@@ -91,15 +92,14 @@ class Citizen : public Human
 {
 public:
     Citizen(double startX, double startY, StudentWorld* world);
-    virtual ~Citizen();
     virtual void doSomething();
+    virtual void die();
 };
 
 class Zombie : public Moveable
 {
 public:
     Zombie(double startX, double startY, StudentWorld* world);
-    virtual ~Zombie();
     virtual void doSomething();
     virtual void pickNewMovementPlan() = 0;
 protected:
@@ -113,23 +113,22 @@ class DumbZombie : public Zombie
 {
 public:
     DumbZombie(double startX, double startY, StudentWorld* world);
-    virtual ~DumbZombie();
     virtual void pickNewMovementPlan();
+    virtual void die();
 };
 
 class SmartZombie : public Zombie
 {
 public:
     SmartZombie(double startX, double startY, StudentWorld* world);
-    virtual ~SmartZombie();
     virtual void pickNewMovementPlan();
+    virtual void die();
 };
 
 class Overlappable: public Actor
 {
 public:
     Overlappable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
-    virtual ~Overlappable();
     bool isOverlappingWithPenelope() const;
 };
 
@@ -137,7 +136,13 @@ class Exit: public Overlappable
 {
 public:
     Exit(double startX, double startY, StudentWorld* world);
-    virtual ~Exit();
+    virtual void doSomething();
+};
+
+class Pit : public Overlappable
+{
+public:
+    Pit(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
 };
 
@@ -145,7 +150,6 @@ class Wall : public Actor
 {
 public:
     Wall(double startX, double startY, StudentWorld* world);
-    virtual ~Wall();
     virtual void doSomething();
 };
 
@@ -157,7 +161,17 @@ public:
     {
         
     }
-    virtual ~Vomit(){}
+    virtual void doSomething() {}
+};
+
+class VaccineGoodie : public Actor
+{
+public:
+    VaccineGoodie(double startX, double startY, StudentWorld* world)
+    : Actor(IID_VACCINE_GOODIE, startX, startY, right, 0, world)
+    {
+        
+    }
     virtual void doSomething() {}
 };
 

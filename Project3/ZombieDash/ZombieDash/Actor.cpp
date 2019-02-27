@@ -18,7 +18,6 @@ Actor::Actor(int imageID, double startX, double startY, Direction dir, int depth
     m_isHuman = false;
 }
 
-Actor::~Actor(){}
 void Actor::die() {m_isDead = true;}
 bool Actor::isDead() const {return m_isDead;}
 StudentWorld* Actor::getWorld() const {return m_world;}
@@ -42,8 +41,6 @@ Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int
     setBlockingObject();
     m_paralyze = true;
 }
-
-Moveable::~Moveable(){}
 
 bool Moveable::moveSelf(Direction dir, int steps) {
     int newX = getX();
@@ -165,8 +162,6 @@ Human::Human(int imageID, double startX,double startY, Direction dir, int depth,
     setHuman();
 }
 
-Human::~Human() {}
-
 bool Human::isInfected() const {return m_infectionStatus;}
 
 void Human::uninfect() {m_infectionStatus = false;}
@@ -186,8 +181,6 @@ Penelope::Penelope(double startX, double startY, StudentWorld* world)
     m_mines = m_charges = m_vaccines = 0;
 }
 
-Penelope::~Penelope() {}
-
 void Penelope::doSomething(){
     // Check to see if she is alive
     //if(isDead())
@@ -198,7 +191,6 @@ void Penelope::doSomething(){
         incrementInfectionCount();
     if(infectionCount() >= MAX_INFECTION){
         die();
-        getWorld()->playSound(SOUND_PLAYER_DIE);
         return;
     }
     
@@ -245,6 +237,11 @@ void Penelope::doSomething(){
     // Check if overlapping flame
 }
 
+void Penelope::die() {
+    getWorld()->playSound(SOUND_PLAYER_DIE);
+    Actor::die();
+}
+
 //////////////////////////////////
 ///// CITIZEN implementation /////
 //////////////////////////////////
@@ -253,8 +250,6 @@ Citizen::Citizen(double startX, double startY, StudentWorld* world)
 : Human(IID_CITIZEN, startX, startY, right, 0, world)
 {
 }
-
-Citizen::~Citizen() {}
 
 void Citizen::doSomething() {
     // Switch paralyze variable every tick
@@ -352,6 +347,12 @@ void Citizen::doSomething() {
     }
 }
 
+void Citizen::die() {
+    getWorld()->playSound(SOUND_CITIZEN_DIE);
+    getWorld()->increaseScore(-1000);
+    Actor::die();
+}
+
 /////////////////////////////////
 ///// ZOMBIE implementation /////
 /////////////////////////////////
@@ -362,8 +363,6 @@ Zombie::Zombie(double startX, double startY, StudentWorld* world)
     m_movementPlanDistance = 0;
     setIsZombie();
 }
-
-Zombie::~Zombie() {}
 
 void Zombie::doSomething() {
     // Switch paralyze variable every tick
@@ -432,10 +431,7 @@ void Zombie::setMovementPlanDistance(int dist) {m_movementPlanDistance = dist;}
 
 DumbZombie::DumbZombie(double startX, double startY, StudentWorld* world)
 : Zombie(startX, startY, world)
-{
-}
-
-DumbZombie::~DumbZombie(){}
+{ }
 
 void DumbZombie::pickNewMovementPlan(){
     int randDist = (rand() % 8) + 3;
@@ -459,6 +455,19 @@ void DumbZombie::pickNewMovementPlan(){
     }
 }
 
+void DumbZombie::die() {
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(1000);
+    
+    // 1 in 10 Zombies drop a vaccine goodie
+    int randVac = rand() % 10;
+    if(randVac == 0)
+        getWorld()->addActor(new VaccineGoodie(getX(),getY(),getWorld()));
+    
+    // Set isDead to true
+    Actor::die();
+}
+
 
 //////////////////////////////////////
 ///// SMART ZOMBIE implementation /////
@@ -466,10 +475,7 @@ void DumbZombie::pickNewMovementPlan(){
 
 SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
 : Zombie(startX, startY, world)
-{
-}
-
-SmartZombie::~SmartZombie(){}
+{ }
 
 void SmartZombie::pickNewMovementPlan(){
     int randDist = (rand() % 8) + 3;
@@ -500,8 +506,12 @@ void SmartZombie::pickNewMovementPlan(){
     else {
         follow(nearest, ZOMBIE_STEP_SIZE);
     }
-    
-    
+}
+
+void SmartZombie::die() {
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(2000);
+    Actor::die();
 }
 
 
@@ -513,8 +523,6 @@ Overlappable::Overlappable(int imageID, double startX,double startY, Direction d
 {
     setOverlappable();
 }
-
-Overlappable::~Overlappable() {}
 
 bool Overlappable::isOverlappingWithPenelope() const {
     return (getWorld()->isOverlapping(this, getWorld()->penelope()));
@@ -529,8 +537,6 @@ Exit::Exit(double startX, double startY, StudentWorld* world)
 : Overlappable(IID_EXIT, startX, startY, right, 1, world)
 { }
 
-Exit::~Exit() {}
-
 void Exit::doSomething() {
     Actor* cit = NULL;
     cit = getWorld()->getOverlapper(this, true, false);
@@ -544,7 +550,28 @@ void Exit::doSomething() {
     if(isOverlappingWithPenelope() && getWorld()->citizensLeft() == 0) {
         getWorld()->finishLevel();
     }
-        
+}
+
+//////////////////////////////
+///// PIT implementation /////
+//////////////////////////////
+
+Pit::Pit(double startX, double startY, StudentWorld* world)
+: Overlappable(IID_PIT, startX, startY, right, 0, world)
+{ }
+
+void Pit::doSomething() {
+    // Get Human overlapping with the pit
+    Actor* victim = getWorld()->getOverlapper(this, true, true);
+    if(victim != NULL){
+        victim->die();
+    }
+    
+    // Get Zombie overlapping with pit
+    victim = getWorld()->getOverlapper(this, false, false);
+    if(victim != NULL){
+        victim->die();
+    }
 }
 
 ///////////////////////////////
@@ -556,8 +583,6 @@ Wall::Wall(double startX, double startY, StudentWorld* world)
 {
     setBlockingObject();
 }
-
-Wall::~Wall() {}
 
 
 void Wall::doSomething()

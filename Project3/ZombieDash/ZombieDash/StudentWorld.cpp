@@ -34,8 +34,8 @@ int StudentWorld::init()
     stringstream levelFile;
     levelFile << "level" << getLevel()/10 << getLevel()%10 << ".txt" ;
 // CHANGE THIS
-    Level::LoadResult result = lev.loadLevel(levelFile.str());
-//    Level::LoadResult result = lev.loadLevel("level02.txt");
+//    Level::LoadResult result = lev.loadLevel(levelFile.str());
+    Level::LoadResult result = lev.loadLevel("level04.txt");
     if(result == Level::load_fail_file_not_found)
         return GWSTATUS_PLAYER_WON;
     else if (result == Level::load_fail_bad_format)
@@ -70,6 +70,7 @@ int StudentWorld::init()
                         m_actors.push_back(new Wall(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::pit:
+                        m_actors.push_back(new Pit(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::vaccine_goodie:
                         break;
