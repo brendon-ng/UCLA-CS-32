@@ -10,6 +10,7 @@ const int CITIZEN_STEP_SIZE = 2;
 const int ZOMBIE_STEP_SIZE = 1;
 const double EUCLIDEAN_DISTANCE = 10.0;
 const double DISTANCE_TO_FOLLOW = 80.0;
+const int LANDMINE_SAFETY_TICKS = 30;
 
 
 class Actor : public GraphObject
@@ -37,6 +38,7 @@ private:
     StudentWorld* m_world;
     
 };
+
 
 class Moveable: public Actor
 {
@@ -146,6 +148,18 @@ public:
     virtual void doSomething();
 };
 
+class Landmine : public Overlappable
+{
+public:
+    Landmine(double startX, double startY, StudentWorld* world);
+    virtual void doSomething();
+    virtual void die();
+    virtual bool isDamageable() const;
+private:
+    bool m_active;
+    int m_safetyTicks;
+};
+
 class Projectile : public Overlappable
 {
 public:
@@ -171,7 +185,6 @@ public:
     virtual void doSomething();
     
 };
-
 
 class Wall : public Actor
 {

@@ -21,7 +21,6 @@ public:
     
     void finishLevel();
     void addActor(Actor* a);
-    void addFlame(int x, int y);
     void damageVictims(const Actor* flame);
     void infectVictims(const Actor* vomit);
     

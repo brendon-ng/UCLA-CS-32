@@ -325,10 +325,6 @@ void StudentWorld::addActor(Actor *a) {
     m_actors.push_back(a);
 }
 
-void StudentWorld::addFlame(int x, int y){
-    m_actors.push_back(new Flame(x,y,0,this));
-}
-
 StudentWorld::~StudentWorld(){
     cleanUp();
 }

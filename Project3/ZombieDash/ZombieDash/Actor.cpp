@@ -202,7 +202,7 @@ void Penelope::doSomething(){
                 fireFlame();
                 break;
             case KEY_PRESS_TAB:
-                // introduce landmine
+                getWorld()->addActor(new Landmine(getX(), getY(), getWorld()));
                 break;
             case KEY_PRESS_ENTER:
                 if(m_vaccines>0){
@@ -231,10 +231,6 @@ void Penelope::doSomething(){
                 break;
         }
     }
-    
-    // Check if overlapping vomit
-    
-    // Check if overlapping flame
 }
 
 void Penelope::die() {
@@ -260,17 +256,17 @@ void Penelope::fireFlame(){
                 y = getY()-i*SPRITE_HEIGHT;
                 break;
             case left:
-                x = getX()-i*SPRITE_HEIGHT;
+                x = getX()-i*SPRITE_WIDTH;
                 break;
             case right:
-                x = getX()+i*SPRITE_HEIGHT;
+                x = getX()+i*SPRITE_WIDTH;
                 break;
             default:
                 break;
         }
 
         if(!getWorld()->flameBlocked(x,y)){
-            getWorld()->addFlame(x, y);
+            getWorld()->addActor(new Flame(x, y, getDirection(), getWorld()));
         }
         else{
             break;
@@ -610,6 +606,81 @@ void Pit::doSomething() {
     }
 }
 
+///////////////////////////////////
+///// LANDMINE implementation /////
+///////////////////////////////////
+
+Landmine::Landmine(double startX, double startY, StudentWorld* world)
+: Overlappable(IID_LANDMINE, startX, startY, right, 1, world)
+{
+    m_active = false;
+    m_safetyTicks = 30;
+}
+
+void Landmine::doSomething() {
+    // Check if it's alive
+    if(isDead())
+        return;
+    
+    // If it is not yet active
+    if(!m_active){
+        m_safetyTicks--;
+        if(m_safetyTicks<=0)
+            m_active = true;
+        return;
+    }
+    
+    // check if it overlaps with Penelope, citizen or zombie
+    if(isOverlappingWithPenelope() || getWorld()->getOverlapper(this, false, false) != NULL || getWorld()->getOverlapper(this, true, true) != NULL) {
+        die();
+    }
+    
+}
+
+void Landmine::die(){
+    std::cout << "DIE";
+    getWorld()->playSound(SOUND_LANDMINE_EXPLODE);
+    
+    //Introduce flame if its not blocked
+    // On location
+    if(!getWorld()->flameBlocked(getX(), getY()))
+        getWorld()->addActor(new Flame(getX(), getY(), getDirection(), getWorld()));
+    //EAST
+    if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()))
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY(), getDirection(), getWorld()));
+    //WEST
+    if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()))
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY(), getDirection(), getWorld()));
+    //NORTH
+    if(!getWorld()->flameBlocked(getX(), getY()+SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX(), getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+    //SOUTH
+    if(!getWorld()->flameBlocked(getX(), getY()-SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX(), getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+    //NORTHEAST
+    if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()+SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+    //NORTHWEST
+    if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()+SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+    //SOUTHEAST
+    if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()-SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+    //SOUTHWEST
+    if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()-SPRITE_HEIGHT))
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+    
+    // Introduce a pit
+    getWorld()->addActor(new Pit(getX(), getY(), getWorld()));
+    
+    // Set isDead to true
+    Actor::die();
+}
+
+bool Landmine::isDamageable() const {return true;}
+
+
+
 /////////////////////////////////////
 ///// PROJECTILE implementation /////
 /////////////////////////////////////
@@ -670,9 +741,8 @@ void Vomit::doSomething() {
     }
     
     incrementTick();
-    
-    
 }
+
 
 ///////////////////////////////
 ///// WALL implementation /////
