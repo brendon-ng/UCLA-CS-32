@@ -268,17 +268,21 @@ void StudentWorld::damageVictims(const Actor* flame) {
     list<Actor*>::iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if(isOverlapping(*it, flame) && (*it)->isDamageable())
+        if(isOverlapping(*it, flame) && (*it)->isDamageable() && !(*it)->isDead())
             (*it)->die();
         it++;
     }
+    
+    if(isOverlapping(m_penelope, flame) && ! m_penelope->isDead())
+        m_penelope->die();
+    
 }
 
 void StudentWorld::infectVictims(const Actor* vomit) {
     list<Actor*>::iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if(isOverlapping(*it, vomit) && (*it)->isHuman()){
+        if(isOverlapping(*it, vomit) && (*it)->isHuman() && !(*it)->isDead()){
             //Human* victim = (*it);
             //victim->infect();
         }

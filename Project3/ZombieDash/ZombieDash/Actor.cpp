@@ -638,7 +638,9 @@ void Landmine::doSomething() {
 }
 
 void Landmine::die(){
-    std::cout << "DIE";
+    // Set isDead to true
+    Actor::die();
+    
     getWorld()->playSound(SOUND_LANDMINE_EXPLODE);
     
     //Introduce flame if its not blocked
@@ -673,8 +675,7 @@ void Landmine::die(){
     // Introduce a pit
     getWorld()->addActor(new Pit(getX(), getY(), getWorld()));
     
-    // Set isDead to true
-    Actor::die();
+    
 }
 
 bool Landmine::isDamageable() const {return true;}
