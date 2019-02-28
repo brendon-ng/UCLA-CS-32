@@ -11,6 +11,7 @@ using namespace std;
 #include <iomanip>
 
 
+
 GameWorld* createStudentWorld(string assetPath)
 {
 	return new StudentWorld(assetPath);
@@ -38,7 +39,7 @@ int StudentWorld::init()
     levelFile << "level" << getLevel()/10 << getLevel()%10 << ".txt" ;
 // CHANGE THIS
 //    Level::LoadResult result = lev.loadLevel(levelFile.str());
-    Level::LoadResult result = lev.loadLevel("level04.txt");
+    Level::LoadResult result = lev.loadLevel("level06.txt");
     if(result == Level::load_fail_file_not_found)
         return GWSTATUS_PLAYER_WON;
     else if (result == Level::load_fail_bad_format)
@@ -115,7 +116,6 @@ int StudentWorld::move()
     
     // If all citizens AND Penelope have used the exit
     if(m_finishedLevel){
-        playSound(SOUND_LEVEL_FINISHED);
         return GWSTATUS_FINISHED_LEVEL;
     }
     
@@ -166,6 +166,7 @@ void StudentWorld::cleanUp()
 }
 
 void StudentWorld::finishLevel() {
+    playSound(SOUND_LEVEL_FINISHED);
     m_finishedLevel = true;
 }
 

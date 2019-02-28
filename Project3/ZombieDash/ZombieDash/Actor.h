@@ -23,7 +23,6 @@ public:
     
     virtual void doSomething() = 0;
     
-
     //Accessors and Modifiers
     bool isDead() const;
     virtual void die();
@@ -48,13 +47,17 @@ class Moveable: public Actor
 public:
     Moveable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
 
+protected:
     bool moveSelf(Direction dir, int steps);
     void follow(Actor* a, int step);
     
-    virtual bool isBlockingObject() const;
-    virtual bool isDamageable() const;
+    //Accessors and Modifiers
     bool isParalyzed() const;
     void setParalyze(bool p);
+    
+    // Override boolean methods
+    virtual bool isBlockingObject() const;
+    virtual bool isDamageable() const;
     
 private:
     bool m_paralyze;
@@ -66,12 +69,16 @@ class Human : public Moveable
 public:
     Human(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
     
+    int infectionCount() const;
+    
+protected:
     bool isInfected() const;
     void uninfect();
-    int infectionCount() const;
+    
     void incrementInfectionCount();
     void infect();
     virtual bool isHuman() const;
+    
 private:
     bool m_infectionStatus;
     int m_infectionCount;

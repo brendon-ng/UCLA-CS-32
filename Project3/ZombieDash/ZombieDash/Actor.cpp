@@ -322,7 +322,12 @@ void Citizen::doSomething() {
     double dist_p = getWorld()->getDistance(this, getWorld()->penelope());
     
     // Determine distance to nearest zombie
-    double dist_z = getWorld()->getDistance(this, getWorld()->nearestMoveable(this, false));
+    Actor* nearest = getWorld()->nearestMoveable(this, false);
+    double dist_z;
+    if(nearest != NULL)
+        dist_z = getWorld()->getDistance(this, nearest);
+    else
+        dist_z = VIEW_WIDTH; // Handle case where there are no more zombies
     
     
     // If citizen wants to follow Penelope
@@ -501,8 +506,6 @@ void DumbZombie::die() {
     
     // Set isDead to true
     Actor::die();
-    
-    setMovementPlanDistance(0);
 }
 
 
@@ -514,11 +517,13 @@ SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
 : Zombie(startX, startY, world)
 { }
 
-void SmartZombie::pickNewMovementPlan(){
+void SmartZombie::pickNewMovementPlan() {
     int randDist = (rand() % 8) + 3;
     setMovementPlanDistance(randDist);
-    
+
     Actor* nearest = getWorld()->nearestMoveable(this, true);
+    if(nearest == NULL)
+        nearest = getWorld()->penelope();
     double dist = getWorld()->getDistance(nearest, this);
     
     if(dist > DISTANCE_TO_FOLLOW){
