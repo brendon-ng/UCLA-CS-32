@@ -121,6 +121,7 @@ public:
     Citizen(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
     virtual void die();
+    virtual void infect();
 private:
     void morph();
 };
@@ -291,7 +292,7 @@ protected:
 class Projectile : public Overlappable
 {
 public:
-    Projectile(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
+    Projectile(int imageID, double startX,double startY, Direction dir, StudentWorld* world);
 protected:
     int ticksSinceCreation() const;
     void incrementTick();

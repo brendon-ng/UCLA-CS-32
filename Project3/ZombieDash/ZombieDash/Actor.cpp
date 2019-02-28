@@ -76,6 +76,7 @@ void Moveable::follow(Actor *a, int step) {
     int row = getY() / LEVEL_HEIGHT;
     int a_col = a_x / LEVEL_WIDTH;
     int a_row = a_y / LEVEL_HEIGHT;
+    
     // If it is in the same column
     if(col == a_col) {
         if(a_row > row){
@@ -87,8 +88,7 @@ void Moveable::follow(Actor *a, int step) {
                 return;
         }
     }
-    // If it is in the same row
-    else if(row == a_row){
+    else if(row == a_row){ // If it is in the same row
         if(a_col > col){
             if(moveSelf(right, step)) // if move is successful
                 return;
@@ -98,8 +98,7 @@ void Moveable::follow(Actor *a, int step) {
                 return;
         }
     }
-    // Not in the same row or col
-    else {
+    else { // Not in the same row or col
         // randomize vertical or horizontal first
         bool moveVertically = rand() % 2;
         
@@ -400,6 +399,13 @@ void Citizen::morph(){
     Actor::die();
 }
 
+void Citizen::infect(){
+    if(!isInfected())
+        getWorld()->playSound(SOUND_CITIZEN_INFECTED);
+    Human::infect();
+}
+    
+
 
 
 
@@ -426,8 +432,8 @@ void Zombie::doSomething() {
         return;
     
     // Check to see if a person is in front
-    int vomitX = -1;
-    int vomitY = -1;
+    int vomitX = getX();
+    int vomitY = getY();
     if(getDirection() == left){
         vomitX = getX()-SPRITE_WIDTH;
         vomitY = getY();
@@ -455,7 +461,7 @@ void Zombie::doSomething() {
         delete vom;
     
     // Check to see if it needs a new movement plan
-    if(m_movementPlanDistance == 0) {
+    if(m_movementPlanDistance <= 0) {
         pickNewMovementPlan();
     }
     
@@ -533,8 +539,6 @@ void SmartZombie::die() {
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
     getWorld()->increaseScore(2000);
     Actor::die();
-    
-    setMovementPlanDistance(0);
 }
 
 void SmartZombie::pickNewMovementPlan() {
@@ -685,28 +689,28 @@ void Landmine::die(){
         getWorld()->addActor(new Flame(getX(), getY(), getDirection(), getWorld()));
     //EAST
     if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()))
-        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY(), getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY(), right, getWorld()));
     //WEST
     if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()))
-        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY(), getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY(), left, getWorld()));
     //NORTH
     if(!getWorld()->flameBlocked(getX(), getY()+SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX(), getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX(), getY()+SPRITE_HEIGHT, up, getWorld()));
     //SOUTH
     if(!getWorld()->flameBlocked(getX(), getY()-SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX(), getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX(), getY()-SPRITE_HEIGHT, down, getWorld()));
     //NORTHEAST
     if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()+SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()+SPRITE_HEIGHT, up, getWorld()));
     //NORTHWEST
     if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()+SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()+SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()+SPRITE_HEIGHT, left, getWorld()));
     //SOUTHEAST
     if(!getWorld()->flameBlocked(getX()+SPRITE_WIDTH, getY()-SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()+SPRITE_WIDTH, getY()-SPRITE_HEIGHT, down, getWorld()));
     //SOUTHWEST
     if(!getWorld()->flameBlocked(getX()-SPRITE_WIDTH, getY()-SPRITE_HEIGHT))
-        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()-SPRITE_HEIGHT, getDirection(), getWorld()));
+        getWorld()->addActor(new Flame(getX()-SPRITE_WIDTH, getY()-SPRITE_HEIGHT,right, getWorld()));
     
     // Introduce a pit
     getWorld()->addActor(new Pit(getX(), getY(), getWorld()));
@@ -784,8 +788,8 @@ bool LandmineGoodie::isLandmine() const {return true;}
 ///// PROJECTILE implementation /////
 /////////////////////////////////////
 
-Projectile::Projectile(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world)
-: Overlappable(imageID, startX, startY, dir, depth, world)
+Projectile::Projectile(int imageID, double startX,double startY, Direction dir, StudentWorld* world)
+: Overlappable(imageID, startX, startY, dir, 0, world)
 {
     m_ticksSinceCreation = 0;
 }
@@ -801,7 +805,7 @@ int Projectile::ticksSinceCreation() const {return m_ticksSinceCreation;}
 ////////////////////////////////
 
 Flame::Flame(double startX, double startY, Direction dir, StudentWorld* world)
-: Projectile(IID_FLAME, startX, startY, dir, 0, world)
+: Projectile(IID_FLAME, startX, startY, dir, world)
 { }
 
 void Flame::doSomething() {
@@ -829,7 +833,7 @@ void Flame::doSomething() {
 ////////////////////////////////
 
 Vomit::Vomit(double startX, double startY, Direction dir, StudentWorld* world)
-: Projectile(IID_VOMIT, startX, startY, dir, 0, world)
+: Projectile(IID_VOMIT, startX, startY, dir, world)
 { }
 
 void Vomit::doSomething() {
