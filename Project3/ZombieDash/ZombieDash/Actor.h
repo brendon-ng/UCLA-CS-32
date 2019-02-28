@@ -14,6 +14,9 @@ const int LANDMINE_SAFETY_TICKS = 30;
 const int VACCINES_PER_GOODIE = 1;
 const int CHARGES_PER_GOODIE = 5;
 const int LANDMINES_PER_GOODIE = 2;
+const int PICK_MOVEMENT_PLAN_MOVE_SUCCESS = 0;
+const int PICK_MOVEMENT_PLAN_NO_MOVE = 1;
+const int PICK_MOVEMENT_PLAN_MOVE_FAILED = 2;
 
 //////////////////
 ///// ACTOR  /////
@@ -55,7 +58,7 @@ public:
 
 protected:
     bool moveSelf(Direction dir, int steps);
-    void follow(Actor* a, int step);
+    bool follow(Actor* a, int step);
     
     //Accessors and Modifiers
     bool isParalyzed() const;
@@ -137,7 +140,7 @@ public:
     virtual void doSomething();
     
 protected:
-    virtual void pickNewMovementPlan() = 0;
+    virtual int pickNewMovementPlan() = 0;  // Returns true if the move was performed, false otherwise
     
     // Accessors and Modifiers
     int movementPlanDistance() const;
@@ -160,7 +163,7 @@ public:
     DumbZombie(double startX, double startY, StudentWorld* world);
     virtual void die();
 protected:
-    virtual void pickNewMovementPlan();
+    virtual int pickNewMovementPlan();
 };
 
 
@@ -173,7 +176,7 @@ public:
     SmartZombie(double startX, double startY, StudentWorld* world);
     virtual void die();
 protected:
-    virtual void pickNewMovementPlan();
+    virtual int pickNewMovementPlan();
 };
 
 

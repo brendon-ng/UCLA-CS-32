@@ -69,7 +69,7 @@ bool Moveable::moveSelf(Direction dir, int steps) {
     
 }
 
-void Moveable::follow(Actor *a, int step) {
+bool Moveable::follow(Actor *a, int step) {
     int a_x = a->getX();
     int a_y = a->getY();
     int col = getX() / LEVEL_WIDTH;
@@ -81,21 +81,21 @@ void Moveable::follow(Actor *a, int step) {
     if(col == a_col) {
         if(a_row > row){
             if(moveSelf(up, step)) // if move is successful
-                return;
+                return true;
         }
         else if (a_row < row) {
             if(moveSelf(down, step)) // if move is successful
-                return;
+                return true;
         }
     }
     else if(row == a_row){ // If it is in the same row
         if(a_col > col){
             if(moveSelf(right, step)) // if move is successful
-                return;
+                return true;
         }
         else if (a_col < col) {
             if(moveSelf(left, step)) // if move is successful
-                return;
+                return true;
         }
     }
     else { // Not in the same row or col
@@ -130,13 +130,14 @@ void Moveable::follow(Actor *a, int step) {
         
         // Try moving in first direction, then other, if both fail, function moveso n
         if(moveSelf(dir, step))
-            return;
+            return true;
         else{
             if(moveSelf(backupdir, step))
-                return;
+                return true;
         }
         
     }
+    return false;
 }
 
 bool Moveable::isParalyzed() const {return m_paralyze;}
@@ -331,7 +332,8 @@ void Citizen::doSomething() {
     
     // If citizen wants to follow Penelope
     if((getWorld()->zombiesLeft()==0 || dist_p < dist_z) && dist_p <= DISTANCE_TO_FOLLOW) {
-        follow(getWorld()->penelope(), CITIZEN_STEP_SIZE);
+        if(follow(getWorld()->penelope(), CITIZEN_STEP_SIZE)) // if move is successful
+            return;
     }
     
     // If Citizen is to run away
@@ -462,7 +464,16 @@ void Zombie::doSomething() {
     
     // Check to see if it needs a new movement plan
     if(m_movementPlanDistance <= 0) {
-        pickNewMovementPlan();
+        // pick the movement plan, returns true if move already was made
+        int status = pickNewMovementPlan();
+        if(status == PICK_MOVEMENT_PLAN_MOVE_SUCCESS){
+            m_movementPlanDistance--;
+            return;
+        }
+        else if(status == PICK_MOVEMENT_PLAN_MOVE_FAILED){
+            m_movementPlanDistance = 0;
+            return;
+        }
     }
     
     // Determine a destination coordinates and check move
@@ -502,7 +513,7 @@ void DumbZombie::die() {
     Actor::die();
 }
 
-void DumbZombie::pickNewMovementPlan(){
+int DumbZombie::pickNewMovementPlan(){
     int randDist = (rand() % 8) + 3;
     setMovementPlanDistance(randDist);
     int randDir = rand() % 4;
@@ -522,6 +533,7 @@ void DumbZombie::pickNewMovementPlan(){
         default:
             break;
     }
+    return PICK_MOVEMENT_PLAN_NO_MOVE;
 }
 
 
@@ -541,7 +553,7 @@ void SmartZombie::die() {
     Actor::die();
 }
 
-void SmartZombie::pickNewMovementPlan() {
+int SmartZombie::pickNewMovementPlan() {
     int randDist = (rand() % 8) + 3;
     setMovementPlanDistance(randDist);
 
@@ -570,8 +582,13 @@ void SmartZombie::pickNewMovementPlan() {
         }
     }
     else {
-        follow(nearest, ZOMBIE_STEP_SIZE);
+        if(follow(nearest, ZOMBIE_STEP_SIZE)) // will try to move, will succeed or fail
+            return PICK_MOVEMENT_PLAN_MOVE_SUCCESS;
+        else
+            return PICK_MOVEMENT_PLAN_MOVE_FAILED;
     }
+    
+    return PICK_MOVEMENT_PLAN_NO_MOVE;
 }
 
 

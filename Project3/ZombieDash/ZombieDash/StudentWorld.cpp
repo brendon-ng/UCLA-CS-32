@@ -40,7 +40,7 @@ int StudentWorld::init()
     stringstream levelFile;
     levelFile << "level" << getLevel()/10 << getLevel()%10 << ".txt" ;
     Level::LoadResult result = lev.loadLevel(levelFile.str());
-    result = lev.loadLevel("level04.txt");
+//    result = lev.loadLevel("level04.txt");
     if(result == Level::load_fail_file_not_found)
         return GWSTATUS_PLAYER_WON;
     else if (result == Level::load_fail_bad_format)
@@ -145,12 +145,12 @@ int StudentWorld::move()
         statText.fill('0');
         statText << setw(5) << getScore()*-1;
     }
-    statText << "  Level:  " << getLevel();
-    statText << "  Lives:  " << getLives();
-    statText <<"  Vaccines:  " << m_vaccines;
-    statText << "  Flames:  " << m_charges;
-    statText <<"  Mines:  " << m_mines;
-    statText << "  Infected:  " << m_penelope->infectionCount();
+    statText << "  Level: " << getLevel();
+    statText << "  Lives: " << getLives();
+    statText <<"  Vaccines: " << m_vaccines;
+    statText << "  Flames: " << m_charges;
+    statText <<"  Mines: " << m_mines;
+    statText << "  Infected: " << m_penelope->infectionCount();
     
     setGameStatText(statText.str());
     
