@@ -5,7 +5,7 @@
 #include <string>
 #include <list>
 class Actor;
-class Moveable;
+class Penelope;
 
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
 
@@ -23,6 +23,7 @@ public:
     void addActor(Actor* a);
     void damageVictims(const Actor* flame);
     void infectVictims(const Actor* vomit);
+    void getGoodie(bool isVaccine, bool isGasCan, bool isLandmine);
     
     // Status functions
     bool isBlocked(const Actor* actor, int x, int y) const;
@@ -41,13 +42,22 @@ public:
     int zombiesLeft() const;
     void incrementZombies();
     void decrementCitizens();
+    int vaccines() const;
+    int charges() const;
+    int mines() const;
+    void decrementVaccines();
+    void decrementCharges();
+    void decrementMines();
 
 private:
     bool m_finishedLevel;
     int m_citizensLeft;
     int m_zombiesLeft;
-    Actor* m_penelope;
+    Penelope* m_penelope;
     std::list<Actor*> m_actors;
+    int m_vaccines;
+    int m_charges;
+    int m_mines;
 };
 
 #endif // STUDENTWORLD_H_

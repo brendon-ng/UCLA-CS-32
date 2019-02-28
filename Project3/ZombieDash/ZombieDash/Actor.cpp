@@ -177,9 +177,7 @@ bool Human::isHuman() const {return true;}
 
 Penelope::Penelope(double startX, double startY, StudentWorld* world)
 : Human(IID_PLAYER, startX, startY, right, 0, world)
-{
-    m_mines = m_charges = m_vaccines = 10;
-}
+{ }
 
 void Penelope::doSomething(){
     // Check to see if she is alive
@@ -202,12 +200,16 @@ void Penelope::doSomething(){
                 fireFlame();
                 break;
             case KEY_PRESS_TAB:
-                getWorld()->addActor(new Landmine(getX(), getY(), getWorld()));
+                if (getWorld()->mines() > 0) {
+                    getWorld()->addActor(new Landmine(getX(), getY(), getWorld()));
+                    getWorld()->decrementMines();
+                }
+                
                 break;
             case KEY_PRESS_ENTER:
-                if(m_vaccines>0){
+                if(getWorld()->vaccines() > 0){
                     uninfect();
-                    m_vaccines--;
+                    getWorld()->decrementVaccines();
                 }
                 break;
             case KEY_PRESS_UP:
@@ -239,9 +241,9 @@ void Penelope::die() {
 }
 
 void Penelope::fireFlame(){
-    if(m_charges <= 0)
+    if(getWorld()->charges() <= 0)
         return;
-    m_charges--;
+    getWorld()->decrementCharges();
     getWorld()->playSound(SOUND_PLAYER_FIRE);
     for(int i = 1; i<=3; i++){
         int x = getX();
@@ -382,6 +384,7 @@ void Citizen::doSomething() {
 void Citizen::die() {
     getWorld()->playSound(SOUND_CITIZEN_DIE);
     getWorld()->increaseScore(-1000);
+    getWorld()->decrementCitizens();
     Actor::die();
 }
 
@@ -498,11 +501,13 @@ void DumbZombie::die() {
     
     // Set isDead to true
     Actor::die();
+    
+    setMovementPlanDistance(0);
 }
 
 
 //////////////////////////////////////
-///// SMART ZOMBIE implementation /////
+///// SMART ZOMBIE implementation ////
 //////////////////////////////////////
 
 SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
@@ -544,6 +549,8 @@ void SmartZombie::die() {
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
     getWorld()->increaseScore(2000);
     Actor::die();
+    
+    setMovementPlanDistance(0);
 }
 
 
@@ -572,7 +579,7 @@ void Exit::doSomething() {
     cit = getWorld()->getOverlapper(this, true, false);
     if(cit != NULL){
         getWorld()->increaseScore(500);
-        cit->die();
+        cit->Actor::die();
         getWorld()->playSound(SOUND_CITIZEN_SAVED);
         getWorld()->decrementCitizens();
     }
@@ -637,6 +644,7 @@ void Landmine::doSomething() {
     
 }
 
+// When a landmine "dies" it explodes
 void Landmine::die(){
     // Set isDead to true
     Actor::die();
@@ -680,6 +688,63 @@ void Landmine::die(){
 
 bool Landmine::isDamageable() const {return true;}
 
+
+/////////////////////////////////
+///// GOODIE implementation /////
+/////////////////////////////////
+
+Goodie::Goodie(int imageID, double startX, double startY, StudentWorld* world)
+: Overlappable(imageID, startX, startY, right, 1, world)
+{ }
+
+void Goodie::doSomething() {
+    // check if it's alive
+    if(isDead())
+        return;
+    
+    if(isOverlappingWithPenelope()){
+        getWorld()->increaseScore(50);
+        die();
+        getWorld()->playSound(SOUND_GOT_GOODIE);
+        getWorld()->getGoodie(isVaccine(), isGasCan(), isLandmine());
+    }
+}
+
+bool Goodie::isDamageable() const {return true;}
+bool Goodie::isVaccine() const {return false;}
+bool Goodie::isLandmine() const {return false;}
+bool Goodie::isGasCan() const {return false;}
+
+
+/////////////////////////////////////////
+///// VACCINE GOODIE implementation /////
+/////////////////////////////////////////
+
+VaccineGoodie::VaccineGoodie(double startX, double startY, StudentWorld* world)
+: Goodie(IID_VACCINE_GOODIE, startX, startY, world)
+{ }
+
+bool VaccineGoodie::isVaccine() const {return true;}
+
+/////////////////////////////////////////
+///// GAS CAN GOODIE implementation /////
+/////////////////////////////////////////
+
+GasCanGoodie::GasCanGoodie(double startX, double startY, StudentWorld* world)
+: Goodie(IID_GAS_CAN_GOODIE, startX, startY, world)
+{ }
+
+bool GasCanGoodie::isGasCan() const {return true;}
+
+//////////////////////////////////////////
+///// LANDMINE GOODIE implementation /////
+//////////////////////////////////////////
+
+LandmineGoodie::LandmineGoodie(double startX, double startY, StudentWorld* world)
+: Goodie(IID_LANDMINE_GOODIE, startX, startY, world)
+{ }
+
+bool LandmineGoodie::isLandmine() const {return true;}
 
 
 /////////////////////////////////////

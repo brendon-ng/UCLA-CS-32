@@ -11,6 +11,9 @@ const int ZOMBIE_STEP_SIZE = 1;
 const double EUCLIDEAN_DISTANCE = 10.0;
 const double DISTANCE_TO_FOLLOW = 80.0;
 const int LANDMINE_SAFETY_TICKS = 30;
+const int VACCINES_PER_GOODIE = 1;
+const int CHARGES_PER_GOODIE = 5;
+const int LANDMINES_PER_GOODIE = 2;
 
 
 class Actor : public GraphObject
@@ -82,9 +85,6 @@ public:
     virtual void doSomething();
     virtual void die();
 private:
-    int m_mines;
-    int m_charges;
-    int m_vaccines;
     void fireFlame();
 };
 
@@ -160,6 +160,42 @@ private:
     int m_safetyTicks;
 };
 
+class Goodie : public Overlappable
+{
+public:
+    Goodie(int imageID, double startX, double startY, StudentWorld* world);
+    virtual void doSomething();
+    virtual bool isDamageable() const;
+protected:
+    virtual bool isVaccine() const;
+    virtual bool isGasCan() const;
+    virtual bool isLandmine() const;
+};
+
+class VaccineGoodie : public Goodie
+{
+public:
+    VaccineGoodie(double startX, double startY, StudentWorld* world);
+protected:
+    virtual bool isVaccine() const;
+};
+
+class GasCanGoodie : public Goodie
+{
+public:
+    GasCanGoodie(double startX, double startY, StudentWorld* world);
+protected:
+    virtual bool isGasCan() const;
+};
+
+class LandmineGoodie : public Goodie
+{
+public:
+    LandmineGoodie(double startX, double startY, StudentWorld* world);
+protected:
+    virtual bool isLandmine() const;
+};
+
 class Projectile : public Overlappable
 {
 public:
@@ -193,17 +229,6 @@ public:
     virtual void doSomething();
     virtual bool isBlockingObject() const;
     virtual bool blocksFlames() const;
-};
-
-class VaccineGoodie : public Actor
-{
-public:
-    VaccineGoodie(double startX, double startY, StudentWorld* world)
-    : Actor(IID_VACCINE_GOODIE, startX, startY, right, 0, world)
-    {
-        
-    }
-    virtual void doSomething() {}
 };
 
 

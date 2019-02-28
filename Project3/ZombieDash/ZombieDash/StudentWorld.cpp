@@ -8,6 +8,7 @@ using namespace std;
 
 #include <math.h>
 #include <sstream>
+#include <iomanip>
 
 
 GameWorld* createStudentWorld(string assetPath)
@@ -29,6 +30,7 @@ int StudentWorld::init()
     m_citizensLeft = 0;
     m_zombiesLeft = 0;
     m_finishedLevel = false;
+    m_vaccines = m_mines = m_charges = 0;
     
     // Get level file
     Level lev(assetPath());
@@ -74,10 +76,13 @@ int StudentWorld::init()
                         m_actors.push_back(new Pit(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::vaccine_goodie:
+                        m_actors.push_back(new VaccineGoodie(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::landmine_goodie:
+                        m_actors.push_back(new LandmineGoodie(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                     case Level::gas_can_goodie:
+                        m_actors.push_back(new GasCanGoodie(SPRITE_WIDTH*x,SPRITE_HEIGHT*y, this));
                         break;
                         
                     default:
@@ -103,8 +108,10 @@ int StudentWorld::move()
     }
     if(!m_penelope->isDead())
         m_penelope->doSomething();
-    else
+    else{
+        decLives();
         return GWSTATUS_PLAYER_DIED;
+    }
     
     // If all citizens AND Penelope have used the exit
     if(m_finishedLevel){
@@ -123,7 +130,21 @@ int StudentWorld::move()
             it++;
     }
     
-    // Update status text
+    
+    stringstream statText;
+    statText << "Score: " ;
+    statText.fill('0');
+    statText << setw(6) << getScore();
+    statText << "  Level: " << getLevel();
+    statText << "  Lives: " << getLives();
+    statText <<"  Vaccines: " << m_vaccines;
+    statText << "  Flames: " << m_charges;
+    statText <<"  Mines: " << m_mines;
+    statText << "  Infected: " << m_penelope->infectionCount();
+    
+    statText << " " << m_citizensLeft;
+    
+    setGameStatText(statText.str());
     
     
     return GWSTATUS_CONTINUE_GAME;
@@ -138,7 +159,10 @@ void StudentWorld::cleanUp()
         delete *it;
         it = m_actors.erase(it);
     }
-    delete m_penelope;
+    if(m_penelope != nullptr){
+        delete m_penelope;
+        m_penelope = nullptr;
+    }
 }
 
 void StudentWorld::finishLevel() {
@@ -218,6 +242,23 @@ int StudentWorld::citizensLeft() const {return m_citizensLeft;}
 void StudentWorld::decrementCitizens() {m_citizensLeft--;}
 int StudentWorld::zombiesLeft() const {return m_zombiesLeft;}
 void StudentWorld::incrementZombies() {m_zombiesLeft++;}
+int StudentWorld::vaccines() const {return m_vaccines;}
+int StudentWorld::charges() const {return m_charges;}
+int StudentWorld::mines() const {return m_mines;}
+void StudentWorld::decrementVaccines() {m_vaccines--;}
+void StudentWorld::decrementCharges() {m_charges--;}
+void StudentWorld::decrementMines() {m_mines--;}
+
+
+
+void StudentWorld::getGoodie(bool isVaccine, bool isGasCan, bool isLandmine) {
+    if(isVaccine)
+        m_vaccines += VACCINES_PER_GOODIE;
+    else if (isGasCan)
+        m_charges += CHARGES_PER_GOODIE;
+    else if (isLandmine)
+        m_mines += LANDMINES_PER_GOODIE;
+}
 
 double StudentWorld::getDistance(const Actor* a1, const Actor* a2) const{
     return(sqrt(pow(static_cast<double>(a1->getX() - a2->getX()), 2.0) +
