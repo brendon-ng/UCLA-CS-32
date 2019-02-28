@@ -17,6 +17,13 @@ const int LANDMINES_PER_GOODIE = 2;
 const int PICK_MOVEMENT_PLAN_MOVE_SUCCESS = 0;
 const int PICK_MOVEMENT_PLAN_NO_MOVE = 1;
 const int PICK_MOVEMENT_PLAN_MOVE_FAILED = 2;
+const int PROJECTILE_LIFE_SPAN = 2;
+const int INCREASE_SCORE_GOODIE = 50;
+const int INCREASE_SCORE_DUMB_ZOMBIE_KILLED = 1000;
+const int INCREASE_SCORE_SMART_ZOMBIE_KILLED = 2000;
+const int INCREASE_SCORE_CITIZEN_SAVED = 500;
+const int INCREASE_SCORE_CITIZEN_KILLED = -1000;
+
 
 //////////////////
 ///// ACTOR  /////
@@ -33,10 +40,10 @@ public:
     bool isDead() const;
     virtual bool isBlockingObject() const;
     virtual bool blocksFlames() const;
-    virtual bool isZombie() const;
-    virtual bool isHuman() const;
+    virtual bool isInfectable() const;
     virtual bool isDamageable() const;
     virtual void infect();
+    virtual bool canStepOn() const;
     
 
     StudentWorld* getWorld() const;
@@ -67,6 +74,7 @@ protected:
     // Override boolean methods
     virtual bool isBlockingObject() const;
     virtual bool isDamageable() const;
+    virtual bool canStepOn() const;
     
 private:
     bool m_paralyze;
@@ -92,7 +100,7 @@ protected:
     void incrementInfectionCount();
     
     // Override boolean methods
-    virtual bool isHuman() const;
+    virtual bool isInfectable() const;
     
 private:
     bool m_infectionStatus;
@@ -145,9 +153,6 @@ protected:
     // Accessors and Modifiers
     int movementPlanDistance() const;
     void setMovementPlanDistance(int dist);
-    
-    // Override Boolean Methods
-    virtual bool isZombie() const;
 
 private:
     int m_movementPlanDistance;
@@ -187,7 +192,6 @@ class Overlappable: public Actor
 {
 public:
     Overlappable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
-protected:
     bool isOverlappingWithPenelope() const;
 };
 

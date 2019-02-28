@@ -18,10 +18,10 @@ void Actor::die() {m_isDead = true;}
 bool Actor::isDead() const {return m_isDead;}
 bool Actor::isBlockingObject() const {return false;}
 bool Actor::blocksFlames() const {return false;}
-bool Actor::isZombie() const {return false;}
-bool Actor::isHuman() const {return false;}
+bool Actor::isInfectable() const {return false;}
 bool Actor::isDamageable() const {return false;}
 void Actor::infect(){return;}
+bool Actor::canStepOn() const {return false;}
 StudentWorld* Actor::getWorld() const {return m_world;}
 
 
@@ -145,6 +145,7 @@ void Moveable::setParalyze(bool p){m_paralyze = p;}
 
 bool Moveable::isBlockingObject() const {return true;}
 bool Moveable::isDamageable() const {return true;}
+bool Moveable::canStepOn() const {return true;}
 
 
 
@@ -166,7 +167,7 @@ void Human::infect() {m_infectionStatus = true;}
 void Human::uninfect() {m_infectionStatus = false;}
 void Human::incrementInfectionCount() {m_infectionCount++;}
 
-bool Human::isHuman() const {return true;}
+bool Human::isInfectable() const {return true;}
 
 
 
@@ -300,7 +301,7 @@ void Citizen::doSomething() {
         incrementInfectionCount();
     
     // If infection kills citizen
-    if(infectionCount() >= 500){
+    if(infectionCount() >= MAX_INFECTION){
         morph();
         
         int r = rand() % 10;
@@ -389,14 +390,14 @@ void Citizen::doSomething() {
 
 void Citizen::die() {
     getWorld()->playSound(SOUND_CITIZEN_DIE);
-    getWorld()->increaseScore(-1000);
+    getWorld()->increaseScore(INCREASE_SCORE_CITIZEN_KILLED);
     getWorld()->decrementCitizens();
     Actor::die();
 }
 
 void Citizen::morph(){
     getWorld()->playSound(SOUND_ZOMBIE_BORN);
-    getWorld()->increaseScore(-1000);
+    getWorld()->increaseScore(INCREASE_SCORE_CITIZEN_KILLED);
     getWorld()->decrementCitizens();
     Actor::die();
 }
@@ -452,9 +453,9 @@ void Zombie::doSomething() {
         vomitX = getX();
         vomitY = getY()-SPRITE_HEIGHT;
     }
-    Actor* vom = new Vomit(vomitX, vomitY, getDirection(), getWorld());
+    Vomit* vom = new Vomit(vomitX, vomitY, getDirection(), getWorld());
     int randThree = rand() % 3; // One in Three chance it will vomit
-    if(getWorld()->getOverlapper(vom, true, true) != NULL && randThree == 0){
+    if((getWorld()->getOverlapper(vom, true, false) != NULL || vom->isOverlappingWithPenelope()) && randThree == 0){
         getWorld()->addActor(vom);
         getWorld()->playSound(SOUND_ZOMBIE_VOMIT);
         return;
@@ -486,8 +487,6 @@ void Zombie::doSomething() {
 int Zombie::movementPlanDistance() const {return m_movementPlanDistance;}
 void Zombie::setMovementPlanDistance(int dist) {m_movementPlanDistance = dist;}
 
-bool Zombie::isZombie() const {return true;}
-
 
 
 
@@ -501,7 +500,7 @@ DumbZombie::DumbZombie(double startX, double startY, StudentWorld* world)
 
 void DumbZombie::die() {
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
-    getWorld()->increaseScore(1000);
+    getWorld()->increaseScore(INCREASE_SCORE_DUMB_ZOMBIE_KILLED);
     
     // 1 in 10 Zombies drop a vaccine goodie
     int randVac = rand() % 10;
@@ -549,7 +548,7 @@ SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
 
 void SmartZombie::die() {
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
-    getWorld()->increaseScore(2000);
+    getWorld()->increaseScore(INCREASE_SCORE_SMART_ZOMBIE_KILLED);
     Actor::die();
 }
 
@@ -621,7 +620,7 @@ void Exit::doSomething() {
     Actor* cit = NULL;
     cit = getWorld()->getOverlapper(this, true, false);
     if(cit != NULL){
-        getWorld()->increaseScore(500);
+        getWorld()->increaseScore(INCREASE_SCORE_CITIZEN_SAVED);
         cit->Actor::die();
         getWorld()->playSound(SOUND_CITIZEN_SAVED);
         getWorld()->decrementCitizens();
@@ -646,16 +645,14 @@ Pit::Pit(double startX, double startY, StudentWorld* world)
 { }
 
 void Pit::doSomething() {
-    // Get Human overlapping with the pit
-    Actor* victim = getWorld()->getOverlapper(this, true, true);
+    // Get Actors overlapping with the pit
+    Actor* victim = getWorld()->getOverlapper(this, false, true);
     if(victim != NULL){
         victim->die();
     }
     
-    // Get Zombie overlapping with pit
-    victim = getWorld()->getOverlapper(this, false, false);
-    if(victim != NULL){
-        victim->die();
+    if (isOverlappingWithPenelope()) {
+        getWorld()->penelope()->die();
     }
 }
 
@@ -670,7 +667,7 @@ Landmine::Landmine(double startX, double startY, StudentWorld* world)
 : Overlappable(IID_LANDMINE, startX, startY, right, 1, world)
 {
     m_active = false;
-    m_safetyTicks = 30;
+    m_safetyTicks = LANDMINE_SAFETY_TICKS;
 }
 
 void Landmine::doSomething() {
@@ -687,7 +684,7 @@ void Landmine::doSomething() {
     }
     
     // check if it overlaps with Penelope, citizen or zombie
-    if(isOverlappingWithPenelope() || getWorld()->getOverlapper(this, false, false) != NULL || getWorld()->getOverlapper(this, true, true) != NULL) {
+    if(isOverlappingWithPenelope() || getWorld()->getOverlapper(this, false, true) != NULL) {
         die();
     }
     
@@ -752,7 +749,7 @@ void Goodie::doSomething() {
         return;
     
     if(isOverlappingWithPenelope()){
-        getWorld()->increaseScore(50);
+        getWorld()->increaseScore(INCREASE_SCORE_GOODIE);
         die();
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->getGoodie(isVaccine(), isGasCan(), isLandmine());
@@ -831,7 +828,7 @@ void Flame::doSomething() {
         return;
     
     // If it is after two ticks from creation
-    if(ticksSinceCreation() >= 2) {
+    if(ticksSinceCreation() >= PROJECTILE_LIFE_SPAN) {
         die();
         return;
     }
@@ -859,7 +856,7 @@ void Vomit::doSomething() {
         return;
     
     // If it is after two ticks from creation
-    if(ticksSinceCreation() >= 2) {
+    if(ticksSinceCreation() >= PROJECTILE_LIFE_SPAN) {
         die();
         return;
     }

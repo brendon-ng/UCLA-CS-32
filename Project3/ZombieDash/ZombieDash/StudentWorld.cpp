@@ -202,7 +202,7 @@ void StudentWorld::infectVictims(const Actor* vomit) {
     list<Actor*>::iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if(isOverlapping(*it, vomit) && (*it)->isHuman() && !(*it)->isDead()){
+        if(isOverlapping(*it, vomit) && (*it)->isInfectable() && !(*it)->isDead()){
             (*it)->infect();
         }
         it++;
@@ -321,23 +321,20 @@ bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
         return false;
 }
 
-Actor* StudentWorld::getOverlapper(const Actor* a, bool human, bool penelope) const {
+Actor* StudentWorld::getOverlapper(const Actor* a, bool infect, bool stepOn) const {
     list<Actor*>::const_iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if((*it)->isHuman() && human && !(*it)->isDead()){
+        if((*it)->isInfectable() && infect && !(*it)->isDead()){
             if(isOverlapping(*it, a))
                 return (*it);
         }
-        if((*it)->isZombie() && !human && !(*it)->isDead()){
+        if((*it)->canStepOn() && stepOn && !(*it)->isDead()){
             if(isOverlapping(*it, a))
                 return (*it);
         }
         it++;
     }
-    
-    if(penelope && isOverlapping(m_penelope, a))
-        return m_penelope;
     
     return NULL;
 }
@@ -350,7 +347,7 @@ Actor* StudentWorld::nearestMoveable(const int x, const int y, const bool human)
     list<Actor*>::const_iterator it;
     it = m_actors.begin();
     while(it != m_actors.end()){
-        if(!(*it)->isDead() && (((*it)->isZombie() && !human) || ((*it)->isHuman() && human))){
+        if(!(*it)->isDead() && (((*it)->canStepOn() && !(*it)->isInfectable() && !human) || ((*it)->isInfectable() && human))){
             if(dist < 0){
                 dist = getDistance(x,y, *it);
                 nearest = *it;

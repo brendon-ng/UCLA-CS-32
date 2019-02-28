@@ -33,7 +33,7 @@ public:
     double getDistance(const Actor* a1, const Actor* a2) const;
     bool isOverlapping(int x, int y, const Actor* a1) const;
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
-    Actor* getOverlapper(const Actor* a, bool human, bool penelope) const;
+    Actor* getOverlapper(const Actor* a, bool infect, bool stepOn) const;
     Actor* nearestMoveable(const Actor* a, const bool human) const;
     Actor* nearestMoveable(const int x, const int y, const bool human) const;
     
