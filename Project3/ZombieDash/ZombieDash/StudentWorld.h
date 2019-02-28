@@ -20,19 +20,19 @@ public:
     virtual int move();
     virtual void cleanUp();
     
-    void finishLevel();
     void addActor(Actor* a);
     void damageVictims(const Actor* flame);
     void infectVictims(const Actor* vomit);
     void getGoodie(bool isVaccine, bool isGasCan, bool isLandmine);
+    void finishLevel();
     
     // Status functions
     bool isBlocked(const Actor* actor, int x, int y) const;
     bool flameBlocked(int x, int y) const;
-    double getDistance(const Actor* a1, const Actor* a2) const;
     double getDistance(const int x, const int y, const Actor* a) const;
-    bool isOverlapping(const Actor* a1, const Actor* a2) const;
+    double getDistance(const Actor* a1, const Actor* a2) const;
     bool isOverlapping(int x, int y, const Actor* a1) const;
+    bool isOverlapping(const Actor* a1, const Actor* a2) const;
     Actor* getOverlapper(const Actor* a, bool human, bool penelope) const;
     Actor* nearestMoveable(const Actor* a, const bool human) const;
     Actor* nearestMoveable(const int x, const int y, const bool human) const;
@@ -40,9 +40,9 @@ public:
     //Accessors and Modifiers
     Actor* penelope() const;
     int citizensLeft() const;
+    void decrementCitizens();
     int zombiesLeft() const;
     void incrementZombies();
-    void decrementCitizens();
     int vaccines() const;
     int charges() const;
     int mines() const;

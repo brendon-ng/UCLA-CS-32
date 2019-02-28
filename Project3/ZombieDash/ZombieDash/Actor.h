@@ -15,7 +15,9 @@ const int VACCINES_PER_GOODIE = 1;
 const int CHARGES_PER_GOODIE = 5;
 const int LANDMINES_PER_GOODIE = 2;
 
-
+//////////////////
+///// ACTOR  /////
+//////////////////
 class Actor : public GraphObject
 {
 public:
@@ -24,15 +26,16 @@ public:
     virtual void doSomething() = 0;
     
     //Accessors and Modifiers
-    bool isDead() const;
     virtual void die();
+    bool isDead() const;
     virtual bool isBlockingObject() const;
     virtual bool blocksFlames() const;
     virtual bool isZombie() const;
     virtual bool isHuman() const;
     virtual bool isDamageable() const;
+    virtual void infect();
     
-protected:
+
     StudentWorld* getWorld() const;
     
 private:
@@ -42,10 +45,13 @@ private:
 };
 
 
+/////////////////////
+///// MOVEABLE  /////
+/////////////////////
 class Moveable: public Actor
 {
 public:
-    Moveable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
+    Moveable(int imageID, double startX,double startY, StudentWorld* world);
 
 protected:
     bool moveSelf(Direction dir, int steps);
@@ -64,19 +70,25 @@ private:
 };
 
 
+//////////////////
+///// HUMAN  /////
+//////////////////
 class Human : public Moveable
 {
 public:
-    Human(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
+    Human(int imageID, double startX, double startY, StudentWorld* world);
     
+    // Accessor and Modifer
     int infectionCount() const;
+    virtual void infect();
     
 protected:
+    //Accessors and Modifiers
     bool isInfected() const;
     void uninfect();
-    
     void incrementInfectionCount();
-    void infect();
+    
+    // Override boolean methods
     virtual bool isHuman() const;
     
 private:
@@ -85,6 +97,10 @@ private:
     
 };
 
+
+/////////////////////
+///// PENELOPE  /////
+/////////////////////
 class Penelope : public Human
 {
 public:
@@ -95,59 +111,100 @@ private:
     void fireFlame();
 };
 
+
+////////////////////
+///// CITIZEN  /////
+////////////////////
 class Citizen : public Human
 {
 public:
     Citizen(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
     virtual void die();
+private:
+    void morph();
 };
 
+
+///////////////////
+///// ZOMBIE  /////
+///////////////////
 class Zombie : public Moveable
 {
 public:
     Zombie(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
-    virtual void pickNewMovementPlan() = 0;
-    virtual bool isZombie() const;
+    
 protected:
+    virtual void pickNewMovementPlan() = 0;
+    
+    // Accessors and Modifiers
     int movementPlanDistance() const;
     void setMovementPlanDistance(int dist);
+    
+    // Override Boolean Methods
+    virtual bool isZombie() const;
+
 private:
     int m_movementPlanDistance;
 };
 
+
+////////////////////////
+///// DUMB ZOMBIE  /////
+////////////////////////
 class DumbZombie : public Zombie
 {
 public:
     DumbZombie(double startX, double startY, StudentWorld* world);
-    virtual void pickNewMovementPlan();
     virtual void die();
+protected:
+    virtual void pickNewMovementPlan();
 };
 
+
+/////////////////////////
+///// SMART ZOMBIE  /////
+/////////////////////////
 class SmartZombie : public Zombie
 {
 public:
     SmartZombie(double startX, double startY, StudentWorld* world);
-    virtual void pickNewMovementPlan();
     virtual void die();
+protected:
+    virtual void pickNewMovementPlan();
 };
 
+
+/////////////////////////
+///// OVERLAPPABLE  /////
+/////////////////////////
 class Overlappable: public Actor
 {
 public:
     Overlappable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world);
+protected:
     bool isOverlappingWithPenelope() const;
 };
 
+
+/////////////////
+///// EXIT  /////
+/////////////////
 class Exit: public Overlappable
 {
 public:
     Exit(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
+protected:
+    // Override Boolean Methods
     virtual bool blocksFlames() const;
 };
 
+
+////////////////
+///// PIT  /////
+////////////////
 class Pit : public Overlappable
 {
 public:
@@ -155,30 +212,46 @@ public:
     virtual void doSomething();
 };
 
+
+/////////////////////
+///// LANDMINE  /////
+/////////////////////
 class Landmine : public Overlappable
 {
 public:
     Landmine(double startX, double startY, StudentWorld* world);
     virtual void doSomething();
     virtual void die();
+protected:
+    // Override Boolean Methods
     virtual bool isDamageable() const;
 private:
     bool m_active;
     int m_safetyTicks;
 };
 
+
+///////////////////
+///// GOODIE  /////
+///////////////////
 class Goodie : public Overlappable
 {
 public:
     Goodie(int imageID, double startX, double startY, StudentWorld* world);
     virtual void doSomething();
-    virtual bool isDamageable() const;
+    
 protected:
     virtual bool isVaccine() const;
     virtual bool isGasCan() const;
     virtual bool isLandmine() const;
+    
+    // Override Boolean Methods
+    virtual bool isDamageable() const;
 };
 
+///////////////////////////
+///// VACCINE GOODIE  /////
+///////////////////////////
 class VaccineGoodie : public Goodie
 {
 public:
@@ -187,6 +260,10 @@ protected:
     virtual bool isVaccine() const;
 };
 
+
+///////////////////////////
+///// GAS CAN GOODIE  /////
+///////////////////////////
 class GasCanGoodie : public Goodie
 {
 public:
@@ -195,6 +272,10 @@ protected:
     virtual bool isGasCan() const;
 };
 
+
+////////////////////////////
+///// LANDMINE GOODIE  /////
+////////////////////////////
 class LandmineGoodie : public Goodie
 {
 public:
@@ -203,6 +284,10 @@ protected:
     virtual bool isLandmine() const;
 };
 
+
+///////////////////////
+///// PROJECTILE  /////
+///////////////////////
 class Projectile : public Overlappable
 {
 public:
@@ -214,6 +299,10 @@ private:
     int m_ticksSinceCreation;
 };
 
+
+//////////////////
+///// FLAME  /////
+//////////////////
 class Flame : public Projectile
 {
 public:
@@ -221,6 +310,10 @@ public:
     virtual void doSomething();
 };
 
+
+/////////////////
+///// VOMIT /////
+/////////////////
 class Vomit : public Projectile
 {
 public:
@@ -229,6 +322,10 @@ public:
     
 };
 
+
+/////////////////
+///// WALL  /////
+/////////////////
 class Wall : public Actor
 {
 public:

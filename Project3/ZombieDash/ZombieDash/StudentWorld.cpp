@@ -21,9 +21,11 @@ GameWorld* createStudentWorld(string assetPath)
 
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
-{
-}
+{ }
 
+StudentWorld::~StudentWorld(){
+    cleanUp();
+}
 
 int StudentWorld::init()
 {
@@ -37,9 +39,7 @@ int StudentWorld::init()
     Level lev(assetPath());
     stringstream levelFile;
     levelFile << "level" << getLevel()/10 << getLevel()%10 << ".txt" ;
-// CHANGE THIS
-//    Level::LoadResult result = lev.loadLevel(levelFile.str());
-    Level::LoadResult result = lev.loadLevel("level06.txt");
+    Level::LoadResult result = lev.loadLevel(levelFile.str());
     if(result == Level::load_fail_file_not_found)
         return GWSTATUS_PLAYER_WON;
     else if (result == Level::load_fail_bad_format)
@@ -96,6 +96,7 @@ int StudentWorld::init()
     return GWSTATUS_CONTINUE_GAME;
 }
 
+
 int StudentWorld::move()
 {
     // Ask all actors to do something
@@ -133,16 +134,22 @@ int StudentWorld::move()
     
     stringstream statText;
     statText << "Score: " ;
-    statText.fill('0');
-    statText << setw(6) << getScore();
+    if(getScore() >= 0){
+        statText.fill('0');
+        statText << setw(6) << getScore();
+    }
+    else {
+        statText << "-";
+        statText.fill('0');
+        statText << setw(5) << getScore()*-1;
+    }
+    
     statText << "  Level: " << getLevel();
     statText << "  Lives: " << getLives();
     statText <<"  Vaccines: " << m_vaccines;
     statText << "  Flames: " << m_charges;
     statText <<"  Mines: " << m_mines;
     statText << "  Infected: " << m_penelope->infectionCount();
-    
-    statText << " " << m_citizensLeft;
     
     setGameStatText(statText.str());
     
@@ -169,6 +176,54 @@ void StudentWorld::finishLevel() {
     playSound(SOUND_LEVEL_FINISHED);
     m_finishedLevel = true;
 }
+
+
+void StudentWorld::addActor(Actor *a) {
+    m_actors.push_back(a);
+}
+
+void StudentWorld::damageVictims(const Actor* flame) {
+    list<Actor*>::iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if(isOverlapping(*it, flame) && (*it)->isDamageable() && !(*it)->isDead())
+            (*it)->die();
+        it++;
+    }
+    
+    if(isOverlapping(m_penelope, flame) && ! m_penelope->isDead())
+        m_penelope->die();
+    
+}
+
+
+void StudentWorld::infectVictims(const Actor* vomit) {
+    list<Actor*>::iterator it;
+    it = m_actors.begin();
+    while(it != m_actors.end()){
+        if(isOverlapping(*it, vomit) && (*it)->isHuman() && !(*it)->isDead()){
+            (*it)->infect();
+        }
+        it++;
+    }
+    if(isOverlapping(m_penelope, vomit) && !m_penelope->isDead())
+        m_penelope->infect();
+}
+
+void StudentWorld::getGoodie(bool isVaccine, bool isGasCan, bool isLandmine) {
+    if(isVaccine)
+        m_vaccines += VACCINES_PER_GOODIE;
+    else if (isGasCan)
+        m_charges += CHARGES_PER_GOODIE;
+    else if (isLandmine)
+        m_mines += LANDMINES_PER_GOODIE;
+}
+
+
+
+//////////////////////////
+//// STATUS FUNCTIONS ////
+//////////////////////////
 
 bool StudentWorld::isBlocked(const Actor* actor, int x, int y) const {
     // Top right coordinates
@@ -238,48 +293,28 @@ bool StudentWorld::flameBlocked(int x, int y) const {
     return false;
 }
 
-Actor* StudentWorld::penelope() const {return m_penelope;}
-int StudentWorld::citizensLeft() const {return m_citizensLeft;}
-void StudentWorld::decrementCitizens() {m_citizensLeft--;}
-int StudentWorld::zombiesLeft() const {return m_zombiesLeft;}
-void StudentWorld::incrementZombies() {m_zombiesLeft++;}
-int StudentWorld::vaccines() const {return m_vaccines;}
-int StudentWorld::charges() const {return m_charges;}
-int StudentWorld::mines() const {return m_mines;}
-void StudentWorld::decrementVaccines() {m_vaccines--;}
-void StudentWorld::decrementCharges() {m_charges--;}
-void StudentWorld::decrementMines() {m_mines--;}
-
-
-
-void StudentWorld::getGoodie(bool isVaccine, bool isGasCan, bool isLandmine) {
-    if(isVaccine)
-        m_vaccines += VACCINES_PER_GOODIE;
-    else if (isGasCan)
-        m_charges += CHARGES_PER_GOODIE;
-    else if (isLandmine)
-        m_mines += LANDMINES_PER_GOODIE;
-}
-
-double StudentWorld::getDistance(const Actor* a1, const Actor* a2) const{
-    return(sqrt(pow(static_cast<double>(a1->getX() - a2->getX()), 2.0) +
-                pow(static_cast<double>(a1->getY() - a2->getY()), 2.0)));
-}
 
 double StudentWorld::getDistance(const int x, const int y, const Actor* a) const{
     return(sqrt(pow(static_cast<double>(x - a->getX()), 2.0) +
                 pow(static_cast<double>(y - a->getY()), 2.0)));
 }
 
-bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
-    if(getDistance(a1, a2) <= EUCLIDEAN_DISTANCE)
+
+double StudentWorld::getDistance(const Actor* a1, const Actor* a2) const{
+    return(sqrt(pow(static_cast<double>(a1->getX() - a2->getX()), 2.0) +
+                pow(static_cast<double>(a1->getY() - a2->getY()), 2.0)));
+}
+
+bool StudentWorld::isOverlapping(int x, int y, const Actor* a1) const{
+    if(getDistance(x,y, a1) <= EUCLIDEAN_DISTANCE)
         return true;
     else
         return false;
 }
 
-bool StudentWorld::isOverlapping(int x, int y, const Actor* a1) const{
-    if(getDistance(x,y, a1) <= EUCLIDEAN_DISTANCE)
+
+bool StudentWorld::isOverlapping(const Actor* a1, const Actor* a2) const{
+    if(getDistance(a1, a2) <= EUCLIDEAN_DISTANCE)
         return true;
     else
         return false;
@@ -306,31 +341,6 @@ Actor* StudentWorld::getOverlapper(const Actor* a, bool human, bool penelope) co
     return NULL;
 }
 
-void StudentWorld::damageVictims(const Actor* flame) {
-    list<Actor*>::iterator it;
-    it = m_actors.begin();
-    while(it != m_actors.end()){
-        if(isOverlapping(*it, flame) && (*it)->isDamageable() && !(*it)->isDead())
-            (*it)->die();
-        it++;
-    }
-    
-    if(isOverlapping(m_penelope, flame) && ! m_penelope->isDead())
-        m_penelope->die();
-    
-}
-
-void StudentWorld::infectVictims(const Actor* vomit) {
-    list<Actor*>::iterator it;
-    it = m_actors.begin();
-    while(it != m_actors.end()){
-        if(isOverlapping(*it, vomit) && (*it)->isHuman() && !(*it)->isDead()){
-            //Human* victim = (*it);
-            //victim->infect();
-        }
-        it++;
-    }
-}
 
 Actor* StudentWorld::nearestMoveable(const int x, const int y, const bool human) const {
     double dist = -1.0;
@@ -363,16 +373,48 @@ Actor* StudentWorld::nearestMoveable(const int x, const int y, const bool human)
     return nearest;
 }
 
+
 Actor* StudentWorld::nearestMoveable(const Actor* a, const bool human) const {
     return nearestMoveable(a->getX(), a->getY(), human);
 }
 
-void StudentWorld::addActor(Actor *a) {
-    m_actors.push_back(a);
-}
 
-StudentWorld::~StudentWorld(){
-    cleanUp();
-}
+
+///////////////////////////////////////////
+//// ACCESSORS AND MODIFIERS FUNCTIONS ////
+///////////////////////////////////////////
+
+Actor* StudentWorld::penelope() const {return m_penelope;}
+int StudentWorld::citizensLeft() const {return m_citizensLeft;}
+void StudentWorld::decrementCitizens() {m_citizensLeft--;}
+int StudentWorld::zombiesLeft() const {return m_zombiesLeft;}
+void StudentWorld::incrementZombies() {m_zombiesLeft++;}
+int StudentWorld::vaccines() const {return m_vaccines;}
+int StudentWorld::charges() const {return m_charges;}
+int StudentWorld::mines() const {return m_mines;}
+void StudentWorld::decrementVaccines() {m_vaccines--;}
+void StudentWorld::decrementCharges() {m_charges--;}
+void StudentWorld::decrementMines() {m_mines--;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

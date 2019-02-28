@@ -16,13 +16,13 @@ Actor::Actor(int imageID, double startX, double startY, Direction dir, int depth
 
 void Actor::die() {m_isDead = true;}
 bool Actor::isDead() const {return m_isDead;}
-StudentWorld* Actor::getWorld() const {return m_world;}
-
 bool Actor::isBlockingObject() const {return false;}
 bool Actor::blocksFlames() const {return false;}
 bool Actor::isZombie() const {return false;}
 bool Actor::isHuman() const {return false;}
 bool Actor::isDamageable() const {return false;}
+void Actor::infect(){return;}
+StudentWorld* Actor::getWorld() const {return m_world;}
 
 
 
@@ -30,8 +30,8 @@ bool Actor::isDamageable() const {return false;}
 //////////////////////////////////
 ///// MOVABLE implementation /////
 //////////////////////////////////
-Moveable::Moveable(int imageID, double startX, double startY, Direction dir, int depth, StudentWorld* world)
-: Actor(imageID, startX, startY, dir, depth, world)
+Moveable::Moveable(int imageID, double startX, double startY, StudentWorld* world)
+: Actor(imageID, startX, startY, right, 0, world)
 {
     m_paralyze = true;
 }
@@ -68,12 +68,6 @@ bool Moveable::moveSelf(Direction dir, int steps) {
     return false;
     
 }
-
-bool Moveable::isBlockingObject() const {return true;}
-bool Moveable::isDamageable() const {return true;}
-bool Moveable::isParalyzed() const {return m_paralyze;}
-void Moveable::setParalyze(bool p){m_paralyze = p;}
-
 
 void Moveable::follow(Actor *a, int step) {
     int a_x = a->getX();
@@ -146,37 +140,43 @@ void Moveable::follow(Actor *a, int step) {
     }
 }
 
+bool Moveable::isParalyzed() const {return m_paralyze;}
+void Moveable::setParalyze(bool p){m_paralyze = p;}
+
+bool Moveable::isBlockingObject() const {return true;}
+bool Moveable::isDamageable() const {return true;}
+
+
+
+
 //////////////////////////////////
 ////// HUMAN implementation //////
 //////////////////////////////////
 
-Human::Human(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world)
-: Moveable(imageID, startX, startY, dir, depth, world)
+Human::Human(int imageID, double startX,double startY, StudentWorld* world)
+: Moveable(imageID, startX, startY, world)
 {
     m_infectionCount = 0;
     m_infectionStatus = false;
 }
 
-bool Human::isInfected() const {return m_infectionStatus;}
-
-void Human::infect() {m_infectionStatus = true;}
-
-void Human::uninfect() {m_infectionStatus = false;}
-
 int Human::infectionCount() const {return m_infectionCount;}
-
-void Human::incrementInfectionCount() {
-    m_infectionCount++;
-}
+bool Human::isInfected() const {return m_infectionStatus;}
+void Human::infect() {m_infectionStatus = true;}
+void Human::uninfect() {m_infectionStatus = false;}
+void Human::incrementInfectionCount() {m_infectionCount++;}
 
 bool Human::isHuman() const {return true;}
 
-////////////////////////////////
-///// PLAYER implementation ////
-////////////////////////////////
+
+
+
+//////////////////////////////////
+///// PENELOPE implementation ////
+//////////////////////////////////
 
 Penelope::Penelope(double startX, double startY, StudentWorld* world)
-: Human(IID_PLAYER, startX, startY, right, 0, world)
+: Human(IID_PLAYER, startX, startY, world)
 { }
 
 void Penelope::doSomething(){
@@ -276,14 +276,16 @@ void Penelope::fireFlame(){
     }
 }
 
+
+
+
 //////////////////////////////////
 ///// CITIZEN implementation /////
 //////////////////////////////////
 
 Citizen::Citizen(double startX, double startY, StudentWorld* world)
-: Human(IID_CITIZEN, startX, startY, right, 0, world)
-{
-}
+: Human(IID_CITIZEN, startX, startY, world)
+{ }
 
 void Citizen::doSomething() {
     // Switch paralyze variable every tick
@@ -299,9 +301,7 @@ void Citizen::doSomething() {
     
     // If infection kills citizen
     if(infectionCount() >= 500){
-        die();
-        getWorld()->playSound(SOUND_ZOMBIE_BORN);
-        getWorld()->increaseScore(-1000);
+        morph();
         
         int r = rand() % 10;
         if(r < 3)
@@ -393,12 +393,22 @@ void Citizen::die() {
     Actor::die();
 }
 
+void Citizen::morph(){
+    getWorld()->playSound(SOUND_ZOMBIE_BORN);
+    getWorld()->increaseScore(-1000);
+    getWorld()->decrementCitizens();
+    Actor::die();
+}
+
+
+
+
 /////////////////////////////////
 ///// ZOMBIE implementation /////
 /////////////////////////////////
 
 Zombie::Zombie(double startX, double startY, StudentWorld* world)
-: Moveable(IID_ZOMBIE, startX, startY, right, 0, world)
+: Moveable(IID_ZOMBIE, startX, startY, world)
 {
     m_movementPlanDistance = 0;
 }
@@ -454,14 +464,13 @@ void Zombie::doSomething() {
         m_movementPlanDistance--;
     else
         m_movementPlanDistance = 0;
-    
-    
 }
-
 
 int Zombie::movementPlanDistance() const {return m_movementPlanDistance;}
 void Zombie::setMovementPlanDistance(int dist) {m_movementPlanDistance = dist;}
+
 bool Zombie::isZombie() const {return true;}
+
 
 
 
@@ -472,6 +481,20 @@ bool Zombie::isZombie() const {return true;}
 DumbZombie::DumbZombie(double startX, double startY, StudentWorld* world)
 : Zombie(startX, startY, world)
 { }
+
+void DumbZombie::die() {
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(1000);
+    
+    // 1 in 10 Zombies drop a vaccine goodie
+    int randVac = rand() % 10;
+    if(randVac == 0){
+        getWorld()->addActor(new VaccineGoodie(getX(),getY(),getWorld()));
+    }
+    
+    // Set isDead to true
+    Actor::die();
+}
 
 void DumbZombie::pickNewMovementPlan(){
     int randDist = (rand() % 8) + 3;
@@ -495,18 +518,7 @@ void DumbZombie::pickNewMovementPlan(){
     }
 }
 
-void DumbZombie::die() {
-    getWorld()->playSound(SOUND_ZOMBIE_DIE);
-    getWorld()->increaseScore(1000);
-    
-    // 1 in 10 Zombies drop a vaccine goodie
-    int randVac = rand() % 10;
-    if(randVac == 0)
-        getWorld()->addActor(new VaccineGoodie(getX(),getY(),getWorld()));
-    
-    // Set isDead to true
-    Actor::die();
-}
+
 
 
 //////////////////////////////////////
@@ -516,6 +528,14 @@ void DumbZombie::die() {
 SmartZombie::SmartZombie(double startX, double startY, StudentWorld* world)
 : Zombie(startX, startY, world)
 { }
+
+void SmartZombie::die() {
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(2000);
+    Actor::die();
+    
+    setMovementPlanDistance(0);
+}
 
 void SmartZombie::pickNewMovementPlan() {
     int randDist = (rand() % 8) + 3;
@@ -550,18 +570,13 @@ void SmartZombie::pickNewMovementPlan() {
     }
 }
 
-void SmartZombie::die() {
-    getWorld()->playSound(SOUND_ZOMBIE_DIE);
-    getWorld()->increaseScore(2000);
-    Actor::die();
-    
-    setMovementPlanDistance(0);
-}
+
 
 
 ///////////////////////////////////////
 ///// OVERLAPPABLE implementation /////
 ///////////////////////////////////////
+
 Overlappable::Overlappable(int imageID, double startX,double startY, Direction dir, int depth, StudentWorld* world)
 : Actor(imageID, startX, startY, dir, depth, world)
 { }
@@ -569,6 +584,8 @@ Overlappable::Overlappable(int imageID, double startX,double startY, Direction d
 bool Overlappable::isOverlappingWithPenelope() const {
     return (getWorld()->isOverlapping(this, getWorld()->penelope()));
 }
+
+
 
 
 ///////////////////////////////
@@ -596,6 +613,9 @@ void Exit::doSomething() {
 
 bool Exit::blocksFlames() const {return true;}
 
+
+
+
 //////////////////////////////
 ///// PIT implementation /////
 //////////////////////////////
@@ -617,6 +637,9 @@ void Pit::doSomething() {
         victim->die();
     }
 }
+
+
+
 
 ///////////////////////////////////
 ///// LANDMINE implementation /////
@@ -687,11 +710,11 @@ void Landmine::die(){
     
     // Introduce a pit
     getWorld()->addActor(new Pit(getX(), getY(), getWorld()));
-    
-    
 }
 
 bool Landmine::isDamageable() const {return true;}
+
+
 
 
 /////////////////////////////////
@@ -715,10 +738,13 @@ void Goodie::doSomething() {
     }
 }
 
-bool Goodie::isDamageable() const {return true;}
 bool Goodie::isVaccine() const {return false;}
 bool Goodie::isLandmine() const {return false;}
 bool Goodie::isGasCan() const {return false;}
+
+bool Goodie::isDamageable() const {return true;}
+
+
 
 
 /////////////////////////////////////////
@@ -752,6 +778,8 @@ LandmineGoodie::LandmineGoodie(double startX, double startY, StudentWorld* world
 bool LandmineGoodie::isLandmine() const {return true;}
 
 
+
+
 /////////////////////////////////////
 ///// PROJECTILE implementation /////
 /////////////////////////////////////
@@ -764,6 +792,8 @@ Projectile::Projectile(int imageID, double startX,double startY, Direction dir, 
 
 void Projectile::incrementTick() {m_ticksSinceCreation++;}
 int Projectile::ticksSinceCreation() const {return m_ticksSinceCreation;}
+
+
 
 
 ////////////////////////////////
@@ -788,9 +818,11 @@ void Flame::doSomething() {
     // Damage all objects that overlap
     getWorld()->damageVictims(this);
     
-    
     incrementTick();
 }
+
+
+
 
 ////////////////////////////////
 ///// VOMIT implementation /////
@@ -812,7 +844,11 @@ void Vomit::doSomething() {
     }
     
     incrementTick();
+    
+    getWorld()->infectVictims(this);
 }
+
+
 
 
 ///////////////////////////////
