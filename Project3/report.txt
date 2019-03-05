@@ -1,0 +1,281 @@
+Brendon Ng
+304-925-492
+UCLA CS 32 Lec 2 Dis 2E
+Prof. Smallberg
+
+Report - Project 3: Zombie Dash
+
+1. ALL Public Member Functions
+
+
+Class: Actor
+virtual void die()
+	Sets m_isDead to true
+Every actor can die or disappear for some reason so this sets the dead/alive 
+state to dead. It is virtual because some actors will peform differently when
+they die like playing a different sound, changing the score differently, etc.
+
+virtual void doSomething() = 0;
+PURE VIRTUAL function. Every actor needs to do something each click but each
+actor MUST override this function to do different things on each tick. There
+will be no declaration of just an Actor object
+
+bool isDead()
+	returns value of m_isDead
+Every actor needs this modifier to change its dead/alive state
+
+The following methods are virtual boolean methods that describe the abilities
+of each actor. I define them in the Actor class to return false and will use a
+virtual override for any classes that they should return true for.
+virtual bool isBlockingObject()
+virtual bool blocksFlames()
+virtual bool isInfectable()
+virtual bool isDamageable()
+virtual bool canStepOn()
+
+This is to infect the actor if applicable, it is defined here and virtual
+because methods in the StudentWorld class will call it using an Actor pointer
+and it will be overriden to do stuff where it applies
+virtual void infect()
+	In Actor class, defaults to do nothing
+
+Accessor for the world the actor is in
+StudentWorld* getWorld()
+
+
+Class: Moveable
+
+bool moveSelf(Direction dir, int steps)
+Takes in a direction and an amount of steps and tries to move the actor steps
+pixels in the direction dir. It returns true if it was successful and false if
+the move was blocked.
+The moveable class is for any actor that can move so anything that extends this
+class will have the functionality of moving and checking if it is blocked
+
+bool follow(Actor* a, int step)
+This takes in an actor pointer and a step size and will move the Moveable actor
+in a way that follows actor a. It returns true if the move was successful and 
+false if it was blocked.
+Any moveable object can have the functionality of following something
+
+
+Class: Human
+
+int infectionCount()
+An accessor for the human's infection count (Citizen or Penelope)
+
+virtual void infect()
+Overrides the dummy method in Actor class for infect(), will change the 
+infection status of the human to true. Only Humans can be infected
+
+
+Class: Penelope
+
+virtual void doSomething()
+Overrides Actor's virtual doSomething method. Performs and action on every tick.The doSomething method checks to see if penelope is alive, it checks to see if
+shes infected, if she is the infection count increases each tick until she dies
+at 500 ticks. It checks to see if any keys were pressed. If Space was pressed,
+it tries to fire a flame, if Tab was pressed, it tries to drop a landmine, if
+enter was pressed it tries to vaccinate itself and change infection status to 
+false, if any directional key is pressed it tries to move in that direction.
+
+virtual void die()
+Overrides Actor's die function because Penelope dies differently. It plays the 
+sound of penelope dying and then calls the Actor version of die which changes
+its state to dead.
+
+
+Class: Citizen
+
+virtual void doSomething()
+Overrides Actor's virtual doSomething method. Performs and action on every tick.A citizen's doSomething method checks to see if its dead or paralyzed, it 
+alternates from tick to tick whether it is paralyzed or not. It checks to see
+if it is infected if she is the infection count increases to 500 it changes into
+a zombie. It also calculates the distance to penelope and to the nearest zombie
+and if penelope is close enough, it will attempt to follow penelope, if a zombie
+is too close, it will run away from the zombie.
+
+virtual void die()
+Overrides Actor's die function because Citizens die differently. It plays the
+sound of a citizen dying, decreases the score, and also decreases the amount of
+citizens remaining in the level. Then it calls actors version of die and sets
+its state to dead.
+
+virtual void infect()
+overrides the Human version of infect() to play a different sound. It plays 
+citizen infected sound then calls the Human version of infect() that changes its
+infection state to true.
+
+
+Class: Zombie
+
+virtual void doSomething()
+Overrides Actor's virtual doSomething method. Performs and action on every tick.
+A zombies's doSomething method checks to see if its dead or paralyzed, it
+alternates from tick to tick whether it is paralyzed or not. It checks if there
+is a Human in front of it and then has a 1/3 chance of introducing a vomit in
+front of it. It also will plan its movement with the virtual pickNewMovementPlan
+function that depends on the type of zombie.
+
+
+Class: Dumb Zombie
+
+virtual void die()
+overrides Actor's die function because a Dumb Zombie dies differently. It plays
+a sound of a zombie dying, decreases the score and has a 1/10 chance of dropping
+a vaccine goodie. It then calls Actor's version of die so it changes its state
+to dead.
+
+
+Class: Smart Zombie
+
+virtual void die()
+overrides Actor's die function because a Smart Zombie dies differently. It plays
+a sound of a zombie dying, decreases the score. It then calls Actor's version of
+die so it changes its state to dead.
+
+
+Class: Overlappable
+
+bool isOverlappingWithPenelope()
+	Checks if the current actor is overlapping with penelope.
+
+
+Class: Exit
+
+virtual void doSomething()
+Overrides the actor verision of do something. It determiens if its overlapping
+with a citizen, if it is, it removes the citizen from the game, increases the
+score and plays a citizen saving sound. if its overlapping with penelope and 
+theres no citizens left, it ends the level.
+
+
+Class: Pit
+
+virtual void doSomething()
+Overrides actor's doSOmething function, it checks if its overlapping with a 
+moveable object, it kills it. 
+
+
+Class: Landmine
+
+virtual void doSomething()
+Overrides Actor's virtual doSomething method. Performs and action on every tick.
+A landmine's doSomething method checks to see if its dead, it also checks if it
+is active after 30 ticks. It checks if its overlapping with a moveable and if it
+is, it "dies" and explodes.
+
+virtual void die()
+Overrrides actor's die method. A Landmine is special in that it explodes when it
+dies. it plays a sound and introduces a flame in the 8 spots around it and the
+spot is on. It then introduces a pit where the landmine was placed.
+
+
+Class: Goodie
+
+virtual void doSomething()
+Overrides Actor's virtual doSomethign method. Performs an action on every tick.
+It checks if it is alive and checks if its overlapping with penelope. It then
+increments a score, and lets the StudentWorld know what goodie was just acquiredIt then sets its state to dead
+
+
+Class: Flame
+
+virtual void doSomething()
+Overrides Actor's virtual doSomethign method. Performs an action on every tick.
+It kills itself after two ticks, and while it is alive, it calls the damage
+Victims method from StudetnWorld
+
+
+Class: Vomit
+
+virtual void doSomething()    
+Overrides Actor's virtual doSomethign method. Performs an action on every tick.
+It kills itself after two ticks, and while it is alive, it calls the infect
+Victims method from StudetnWorld
+
+
+Class: Wall
+
+virtual void doSomething()
+Does nothing.
+
+
+
+
+2. All functionality is working correctly.
+
+3. It was not specified whether flames were to be blocked by walls that came
+from landmines, so I assumed it is just like any other flame in that it gets
+blocked. 
+
+4. How I tested each class
+
+Actor: I made sure it was pure virtual by trying to declare an new Actor, and it
+successfully threw a compile error. The rest of the testing was taken care of 
+by other classes since every class stems from Actor, if they all Work, actor 
+works. 
+
+Moveable: To initially test the moveable class I made sure the moveSelf function
+worked by using the arrow keys and peneleope's move to move into all sorts of 
+walls from all sorts of directions. I also tested the follow method by having 
+just a penelope and a citizen in a frame and seeing when it started to follow,
+how it followed, and if all the functionality was working correctly.
+
+Human: This is a class that is not ever explicitly defined so all Humans will
+extend this class. To check the methods, I purposely got infected as Penelope
+and made sure the infection count went up.
+
+Penelope: Testing penelope ranged from clicking each key that does something
+and checking to see if it worked properly. I set a temporary variable so 
+penelope starts off with 10 mines, charges, and vaccines and made sure the 
+functionality of each one worked, including the moving functionality.
+
+Citizen: I tested the citizen the same way as I tested the moveable function
+by having a citizen, penelope, and a zombie in the frame, making sure it follows
+correctly and gets infected and turns into a zombie as expected. I also used 
+level 4 to make sure it triggers a landmine and falls into a pit.
+
+Zombie: I surrounded a group of dumb zombies with pits to see if around 1 in 10
+of them drop vaccine goodies when killed, I also had just a citizen, penelope,
+and smart zombie in a frame to test its following functionality. I had penelope
+and the citizens walk in front of the zombies to test the vomit function as well
+
+Overlappable: Objects extend from overlappable so the testing was done with
+its derived classes and making sure they all work. 
+
+Exit: Exit was easy to test as I just played levels over and over to make sure
+it only let citizens in until all of them were gone and then lettign penelope in
+I also made a level of all exits to make sure zombies did not fall in to it.
+
+Pit: I tested pit like I tested zombies, and has a bunch of pits in one level
+and a group of zombies in the middle as well as penelope and a few citizens,
+making sure they died when falling in the pit. Level 4 was also important in
+testing pits as they were a vital part of that level's gameplay.
+
+Landmine: I used level 3 and level 4 a lot to test landmine, placing landmines
+in differnet palces, in different corners etc. and having zombies, citizens, and
+penelope walk over them to trigger it. I also shot flames at the landmine to 
+make sure they were set off by flames as well. I made sure a pit was introduced
+each time it exploded.
+
+Goodies: using the score ticker at the top and a level with a large amount of
+goodies all over the place, I made sure that only penelope could walk over them
+and that they incremented the counts of charges, vaccines, and mines each time.
+
+Projectile: Objects extend from overlappable so the testing was done with
+its derived classes and making sure they all work. 
+
+Flame: I had a level where by default I had 10 flames to make sure they worked,
+I shot flames in all directions, at zombies, at citizens, and at exits, and at
+goodies to make sure they were either blocked properly or destroyed the goodies
+properly. I also shot them into walls to make sure the flames were blocked and
+didnt go outside the area.
+
+Vomit: Vomit was easily tested with zombies, as I was testing to make sure the
+zombies worked, I walked penelope and citizens in front of zombies to make sure
+they voimitted around a third of the time and that my infection count went up
+and eventually the citizens became zombies.
+
+Wall: Wall was easily tested by running penelope and other moveables into it and
+making sure they were properly blocked and could not go past
