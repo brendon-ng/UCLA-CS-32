@@ -1,0 +1,14 @@
+Brendon Ng
+304-925-492
+UCLA CS 32 Lec 2 Dis 2E
+Prof. Smallberg
+
+Report - Homework 4
+
+2. The error arises when the insert function calls the == operator on the Coord class.
+   We did not define an == operator for the Coord class so the compiler does not know
+   how to compare one Coord to another. User defined classes must define all comparison
+   operators.
+
+
+
