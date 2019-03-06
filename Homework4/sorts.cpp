@@ -148,6 +148,7 @@ void insertion_sort(vector<Store>& s, bool comp(const Store&, const Store&))
         for(int j=i; j>0 ; j--){
             if(comp(s[j],s[j-1])){
                 swap(s[j], s[j-1]);
+                break;
             }
         }
     }
