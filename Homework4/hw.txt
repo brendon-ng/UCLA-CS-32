@@ -10,5 +10,38 @@ Report - Homework 4
    how to compare one Coord to another. User defined classes must define all comparison
    operators.
 
+3b. We could not solve the problem recursively with only one parameter because we would
+   not have any way of keeping track of the previous parent menu items to print out. For
+   example, if we were in the "Window" menu item, there would be no way of keeping track
+   of the "File" and "New" menu items that it stems from. The second string parameter is
+   essential in keeping track of where the current menu item is in respect to the top of
+   the menu tree.
 
+4a. The time complexity is O(N^3)
+   The algorithm has three nested loops that each run N times. The outer loop that 
+   iterates through rows is ran N times, the next loop in that iterates through columns
+   for every row is run N^2 times (N times for every row). And the inner most loop is run
+   N^3 times (N for every cell in the matrix (N^2 cells)).
 
+4b. The time complexity is still O(N^3)
+   The algorithm cuts back on the number of operations but the time complexity remains at
+   O(N^3). The middle loop runs N+(N-1)+(N-2)... times, equating to N(N-1)/2 times. This
+   still equates to running N^2 times as we ignore coefficients. So the inner most loop
+   basically still runs N^3 times.
+
+5a. The worst case time complexity is O(N^2) because the loop will run a max of N times,
+   meaning the insert() function will be run a max of N times. The insert() function has
+   a worst case time complexity of O(N) because it calls findFirstAtLeast() which has a 
+   worst case time complexity of O(N). Therefore, the worst case time complexity of
+   unite() as a whole is O(N^2).
+
+5b. The time complexity is O(N logN). The push_back() function is called 2N times, and the
+   doErase and insertBefore O(1) methods are called N times each.  The sort() algorithm is
+   O(N logN), making the commands within it the most called commands, so the time
+   complexity of this unite() function is O(N logN).
+
+5c. The time complexity is O(N). At its worse case, the insertBefore() function is called
+   N times for each loop for a total of 2N times. The insertBefore() function is the most
+   called function in this version of unite() so the time complexity is O(N).
+
+ 
