@@ -34,13 +34,10 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
     string sequence = "";
     
     // Make sure first line is a properly formatted name line
-    if(!getline(genomeSource, line)) {
-        cout << "FAIL";
-        return false;
-        
-    }
+    if(!getline(genomeSource, line)) {return false;}
     if(line[0] != '>' || line.size() <= 1)
         return false;
+    
     name = line.substr(1);
     lookForNewName = false;
     
@@ -61,7 +58,7 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
         else {
             // For each letter in the line, if it is not an ACTG or N, return false
             for(int i=0; i<line.size(); i++){
-                if(toupper(line[i]) != 'A' || toupper(line[i]) != 'C' || toupper(line[i]) != 'T' || toupper(line[i]) != 'G' || toupper(line[i]) != 'N')
+                if(toupper(line[i]) != 'A' && toupper(line[i]) != 'C' && toupper(line[i]) != 'T' && toupper(line[i]) != 'G' && toupper(line[i]) != 'N')
                     return false;
                 
                 sequence += toupper(line[i]);   // Add current character to sequence
