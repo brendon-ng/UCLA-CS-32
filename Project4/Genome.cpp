@@ -44,14 +44,17 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
     while (getline(genomeSource, line)){
         if(line.size()==0)  // Handle empty lines
             return false;
+        
         // If we come across a > indicating a name line and the previous line was not a name line
         if(line[0] == '>' && lookForNewName) {
-            genomes.push_back(Genome(name,sequence));   // Push the previously read genome to the vector
+            Genome g(name,sequence);
+            genomes.push_back(g);   // Push the previously read genome to the vector
             
             if(line.size() <= 1)    // If the line contains only the >
                 return false;
             
             name = line.substr(1);  // Save the name without the >
+            sequence = "";
             
             lookForNewName = false; // indicate the last line was a name - the next can't be a name line
             continue;

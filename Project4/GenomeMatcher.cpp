@@ -64,7 +64,7 @@ bool GenomeMatcherImpl::findGenomesWithThisDNA(const string& fragment, int minim
     
     // Find all possible matches starting with the minimum search size matching elements
     vector<GenomeSegment> possibleMatches = m_trie.find(fragment.substr(0, m_minimum), exactMatchOnly);
-
+    
     // For each instance of a possible match
     for(int i=0; i< possibleMatches.size(); i++) {
         bool allowSnip = !exactMatchOnly;
