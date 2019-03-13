@@ -129,11 +129,7 @@ std::vector<ValueType> Trie<ValueType>::find(const std::string& key, bool exactM
 template<typename ValueType>
 void Trie<ValueType>::destructTree(Node* cur) {
     // Use recursive post order traversal
-    if(cur == nullptr)
-        return;
-    if(cur->children.size()==0)
-        return;
-    for(int i=0; i<cur->children.size(); i++){
+    for(int i=0; i < cur->children.size(); i++){
         destructTree(cur->children[i]);
     }
     
