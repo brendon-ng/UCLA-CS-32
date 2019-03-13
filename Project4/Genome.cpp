@@ -45,7 +45,7 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
         if(line.size()==0)  // Handle empty lines
             return false;
         // If we come across a > indicating a name line and the previous line was not a name line
-        if(line[0] != '>' && lookForNewName) {
+        if(line[0] == '>' && lookForNewName) {
             genomes.push_back(Genome(name,sequence));   // Push the previously read genome to the vector
             
             if(line.size() <= 1)    // If the line contains only the >
@@ -54,8 +54,12 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
             name = line.substr(1);  // Save the name without the >
             
             lookForNewName = false; // indicate the last line was a name - the next can't be a name line
+            continue;
         }
         else {
+            if (line.size() > 80)
+                return false;
+            
             // For each letter in the line, if it is not an ACTG or N, return false
             for(int i=0; i<line.size(); i++){
                 if(toupper(line[i]) != 'A' && toupper(line[i]) != 'C' && toupper(line[i]) != 'T' && toupper(line[i]) != 'G' && toupper(line[i]) != 'N')
