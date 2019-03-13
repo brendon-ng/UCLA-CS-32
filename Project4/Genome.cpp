@@ -34,7 +34,11 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
     string sequence = "";
     
     // Make sure first line is a properly formatted name line
-    if(!getline(genomeSource, line)) {return false;}
+    if(!getline(genomeSource, line)) {
+        cout << "FAIL";
+        return false;
+        
+    }
     if(line[0] != '>' || line.size() <= 1)
         return false;
     name = line.substr(1);
