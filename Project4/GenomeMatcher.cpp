@@ -134,7 +134,7 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
     
     results.clear();
     
-    int S = query.length() % fragmentMatchLength;
+    int S = query.length() / fragmentMatchLength;
     map<string, int> genomeCounts;
 
     
