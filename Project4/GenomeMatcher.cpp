@@ -1,11 +1,13 @@
 #include "provided.h"
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <fstream>
 using namespace std;
 
 #include "Trie.h"
+#include <algorithm>
 
 class GenomeMatcherImpl
 {
@@ -112,31 +114,62 @@ bool GenomeMatcherImpl::findGenomesWithThisDNA(const string& fragment, int minim
     return !matches.empty();
 }
 
+bool customCompare(const GenomeMatch& a, const GenomeMatch& b) {
+    if(a.percentMatch > b.percentMatch)
+        return true;
+    else if(b.percentMatch > a.percentMatch)
+        return false;
+    else{
+        if(a.genomeName < b.genomeName)
+            return true;
+        else
+            return false;
+    }
+}
+
 bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatchLength, bool exactMatchOnly, double matchPercentThreshold, vector<GenomeMatch>& results) const
 {
     if(fragmentMatchLength < minimumSearchLength())
         return false;
     
-    int S = query.length() % fragmentMatchLength;
-    int pos = 0;
+    results.clear();
     
-    int matchesFound = 0;
+    int S = query.length() % fragmentMatchLength;
+    map<string, int> genomeCounts;
+
+    
     for(int i=0; i < S; i++){
         string sequence;
-        query.extract(i, fragmentMatchLength, sequence);
+        query.extract(i*fragmentMatchLength, fragmentMatchLength, sequence);
         vector<DNAMatch> matches;
         findGenomesWithThisDNA(sequence, fragmentMatchLength, exactMatchOnly, matches);
-        double p = (matches.size() / S) * 100;
-        if (p >= matchPercentThreshold){
-            GenomeMatch gMatch;
-            gMatch.genomeName = "wfwef";
-            results.push_back(GenomeMatch());
+        for(int m=0; m< matches.size(); m++){
+            map<string, int>::iterator it = genomeCounts.find(matches[m].genomeName);
+            if(it == genomeCounts.end()){
+                genomeCounts[matches[m].genomeName] = 1;
+            }
+            else{
+                it->second++;
+            }
         }
-        
-        
-        pos+=fragmentMatchLength;
     }
-    return true;
+    
+    map<string, int>::iterator it = genomeCounts.begin();
+    while(it != genomeCounts.end()){
+        double p = (static_cast<double>(it->second) / S ) * 100;
+        if(p >= matchPercentThreshold){
+            GenomeMatch newMatch;
+            newMatch.genomeName = it->first;
+            newMatch.percentMatch = p;
+            results.push_back(newMatch);
+        }
+        it++;
+    }
+    
+    sort(results.begin(), results.end(), &customCompare);
+    
+    return !results.empty();
+    
 }
 
 //******************** GenomeMatcher functions ********************************
