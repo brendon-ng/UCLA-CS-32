@@ -85,7 +85,7 @@ string GenomeImpl::name() const
 
 bool GenomeImpl::extract(int position, int length, string& fragment) const
 {
-    if(position < 0 || position + length > m_sequence.size())
+    if(position < 0  || length < 0 || position + length > m_sequence.size())
         return false;
     fragment = m_sequence.substr(position, length);
     return true;
@@ -138,3 +138,6 @@ bool Genome::extract(int position, int length, string& fragment) const
 {
     return m_impl->extract(position, length, fragment);
 }
+
+
+
