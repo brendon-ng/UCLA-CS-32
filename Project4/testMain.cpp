@@ -12,7 +12,7 @@
 using namespace std;
 
 int main() {
-    /*
+    
      Trie<int> trie;
      trie.insert("GATTACA",42);
      trie.insert("GATTACA",17);
@@ -39,7 +39,7 @@ int main() {
      for(int i=0; i < output.size(); i++){
      cout << output[i] << ", ";
      }
-     */
+     /*
     
     GenomeMatcher matcher(4);
     matcher.addGenome(Genome("Genome 1", "CGGTGTACNACGACTGGGGATAGAATATCTTGACGTCGTACCGGTTGTAGTCGTTCGACCGAAGGGTTCCGCGCCAGTAC"));
@@ -56,6 +56,7 @@ int main() {
     for(int i =0; i< matches.size(); i++){
         cout << matches[i].genomeName << " of length " << matches[i].length << " at position " << matches[i].position << endl;
     }
+    */
     
 }
 
