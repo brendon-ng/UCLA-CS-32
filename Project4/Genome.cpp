@@ -77,7 +77,8 @@ bool GenomeImpl::load(istream& genomeSource, vector<Genome>& genomes)
     if(!lookForNewName) // If there was no sequence after the last line if the last line was a name
         return false;
     
-    genomes.push_back(Genome(name,sequence));   // Push the last genome and return true
+    Genome g(name, sequence);
+    genomes.push_back(g);   // Push the last genome and return true
     return true;
 }
 

@@ -57,7 +57,7 @@ void Trie<ValueType>::insert(const std::string& key, const ValueType& value) {
     // Traverse the tree according to key
     for(int i=0; i < key.size(); i++){
         int c =0;
-        unsigned long children = cur->children.size();
+        int children = cur->children.size();
         for(; c < children; c++){
             if (cur->children[c]->label == key[i]) {
                 cur = cur->children[c];
