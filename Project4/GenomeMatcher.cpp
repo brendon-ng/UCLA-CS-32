@@ -18,6 +18,7 @@ public:
     bool findGenomesWithThisDNA(const string& fragment, int minimumLength, bool exactMatchOnly, vector<DNAMatch>& matches) const;
     bool findRelatedGenomes(const Genome& query, int fragmentMatchLength, bool exactMatchOnly, double matchPercentThreshold, vector<GenomeMatch>& results) const;
 private:
+    // For our Trie to store, stores index to the genome in the genome vector
     struct GenomeSegment {
         int index;
         int position;
@@ -37,12 +38,13 @@ void GenomeMatcherImpl::addGenome(const Genome& genome)
     m_genomes.push_back(genome);
     if(genome.length() >= m_minimum){
         int i=0;
+        // for every full segment
         while(i + m_minimum <= genome.length()){
             string fragment;
-            genome.extract(i, m_minimum, fragment);
+            genome.extract(i, m_minimum, fragment); // Get subset
             GenomeSegment seg;
-            seg.index = (int) m_genomes.size()-1;
-            seg.position = i;
+            seg.index = (int) m_genomes.size()-1; // index - genome will be the last added element to the genome vector
+            seg.position = i;       // Position of where the segment started
             m_trie.insert(fragment, seg);
             i++;
         }
@@ -114,6 +116,7 @@ bool GenomeMatcherImpl::findGenomesWithThisDNA(const string& fragment, int minim
     return !matches.empty();
 }
 
+// Custom compare function to sort GenomeMatch's
 bool customCompare(const GenomeMatch& a, const GenomeMatch& b) {
     if(a.percentMatch > b.percentMatch)
         return true;
@@ -129,20 +132,23 @@ bool customCompare(const GenomeMatch& a, const GenomeMatch& b) {
 
 bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatchLength, bool exactMatchOnly, double matchPercentThreshold, vector<GenomeMatch>& results) const
 {
+    // Handle bad cases
     if(fragmentMatchLength < minimumSearchLength())
         return false;
     
     results.clear();
     
     int S = query.length() / fragmentMatchLength;
-    map<string, int> genomeCounts;
-
     
+    map<string, int> genomeCounts;  // Map to count how many times a genome had a match
+    
+    // For each sequence
     for(int i=0; i < S; i++){
         string sequence;
-        query.extract(i*fragmentMatchLength, fragmentMatchLength, sequence);
+        query.extract(i*fragmentMatchLength, fragmentMatchLength, sequence);    // extract sequence
         vector<DNAMatch> matches;
-        findGenomesWithThisDNA(sequence, fragmentMatchLength, exactMatchOnly, matches);
+        findGenomesWithThisDNA(sequence, fragmentMatchLength, exactMatchOnly, matches); // search for extracted sequence
+        // Increase count for all found genomes
         for(int m=0; m< matches.size(); m++){
             map<string, int>::iterator it = genomeCounts.find(matches[m].genomeName);
             if(it == genomeCounts.end()){
@@ -154,10 +160,11 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
         }
     }
     
+    // for every genome g with a match
     map<string, int>::iterator it = genomeCounts.begin();
     while(it != genomeCounts.end()){
-        double p = (static_cast<double>(it->second) / S ) * 100;
-        if(p >= matchPercentThreshold){
+        double p = (static_cast<double>(it->second) / S ) * 100;    // compute the percentage
+        if(p >= matchPercentThreshold){     // if it above the threshold, push it to the results vector
             GenomeMatch newMatch;
             newMatch.genomeName = it->first;
             newMatch.percentMatch = p;
@@ -166,6 +173,7 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
         it++;
     }
     
+    // organize the results vector by percentage with alphabetical breaking ties
     sort(results.begin(), results.end(), &customCompare);
     
     return !results.empty();
