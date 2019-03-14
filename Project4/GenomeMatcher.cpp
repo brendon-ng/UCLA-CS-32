@@ -4,10 +4,11 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 #include "Trie.h"
-#include <algorithm>
+
 
 class GenomeMatcherImpl
 {
@@ -71,9 +72,11 @@ bool GenomeMatcherImpl::findGenomesWithThisDNA(const string& fragment, int minim
     for(int i=0; i< possibleMatches.size(); i++) {
         bool allowSnip = !exactMatchOnly;
         string fragmentFromGenome;
-        m_genomes[possibleMatches[i].index].extract(possibleMatches[i].position, (int) fragment.size(), fragmentFromGenome);
+        int position = possibleMatches[i].position;
+        int lengthToCheck = min( (int) fragment.size(), m_genomes[possibleMatches[i].index].length() - position);
+        m_genomes[possibleMatches[i].index].extract(position, lengthToCheck, fragmentFromGenome);
         int j=0;
-        for(; j<fragment.length(); j++){
+        for(; j < lengthToCheck; j++){
             if(fragment[j] != fragmentFromGenome[j]){
                 // Break once it is no longer matching
                 if(allowSnip){
@@ -96,7 +99,7 @@ bool GenomeMatcherImpl::findGenomesWithThisDNA(const string& fragment, int minim
                     else{
                         // If this is a match of the same genome but larger length, update the length and position
                         matches[k].length = j;
-                        matches[k].position = possibleMatches[i].position;
+                        matches[k].position = position;
                         pushMatch = false;
                     }
                 }

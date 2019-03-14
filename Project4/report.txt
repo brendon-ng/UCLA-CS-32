@@ -1,0 +1,51 @@
+Brendon Ng
+304-925-492
+UCLA CS 32 Lec 2 Dis 2E
+Prof. Smallberg
+
+Report - Project 4: Gee-nomics
+
+1. My classes do not have any known bugs, everything should be working 
+   correctly.
+
+2. Every method should satisfy the big-O requirement.
+
+3. 
+   Trie::find() 
+   I used a recursive find function to return a vector values at a certain key.
+   find calls a recursive helper function that takes in the key, whether we are
+   looking for exact matches only, the current node we are on, and the index
+   pointing to the letter in "key" that we are on.
+
+   find(){
+	if we have reached our target node, return a vector with the values
+	at this node (base case)
+
+	for each child node, if the label matches the letter of the next letter
+	we are looking for, add the recursive return vector for that node to
+	what we will return from this node.
+
+	if we are allowing ONE SNiP, add the recursive return vector for this
+	 node to anyways to what we will return from this node but set 
+	 exact match only to true so no more SNiP's will be allowed.
+
+	 return the combination of the recursive result vectors for the 
+	 the subnodes visited.
+   }
+
+
+   findGenomesWithThisDNA() {
+      clear the matches vector
+
+      find possible matches by finding positions where the first "minimumSearchLength" 
+      genes match using the find function and a subset of fragment.
+
+      for each instance of a possible match,
+      	  find out how long the strings match for, if the length of the match
+	  is greater than or equal to the minimum length,
+	     push the new DNAmatch to the matches vector if it is the first
+	     match of that specific genome or if it is a longer match than a 
+	     previously pushed genome.
+      return true if the matches vector is not empty, meaning a match was found
+      and false otherwise.
+   }
