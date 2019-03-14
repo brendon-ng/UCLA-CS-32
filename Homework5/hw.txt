@@ -1,0 +1,77 @@
+Brendon Ng
+304-925-492
+UCLA CS 32 Lec 2 Dis 2E
+Prof. Smallberg
+
+Homework 5: 
+
+1a. 
+                                50
+                             /      \
+                         20            60
+                      /     \            \   
+                 10          40            70
+                   \        /            /    \
+                    15     30          65       80
+                          /  \                /
+                         25  38              72
+
+1b. 
+    In-order: 10 15 20 25 30 38 40 50 60 65 70 72 80
+    Pre-order: 50 20 10 15 40 30 25 38 60 70 65 80 72
+    Post-order: 15 10 25 38 30 40 20 65 72 80 70 60 50
+
+1c.
+                                50
+                             /      \
+                         25            60
+                      /     \            \   
+                 10          40            70
+                   \        /            /    \
+                    15     38          65       80
+                                              /
+                                             72
+
+2a. 
+
+struct Node {
+	int value;
+	Node* right;
+	Node* left;
+	Node* parent;
+};
+
+2b.
+
+Given an input "int value" to the function to insert:
+
+If the root pointer is null ptr
+	set root to point to a new node 
+	assign value root's value and nullptr to root's left and right.
+
+Initialize a current node pointer and initially point it to root
+While true
+	if value is equal to current node's value
+		return from function without inserting
+	if value is less than current node's value
+		if current node's left pointer is null
+			allocate a new node and set current node's left ptr to this node
+			set the new node's value to value
+			Set the new node's left and right pointers to nullptr
+			set the new node's parent pointer to the current node
+			return from function
+		else
+			set current node to the current node's left pointer
+			continue function
+	if value is greater than current node's value
+		if current node's right pointer is null
+			allocate a new node and set current node's right ptr to this node
+			set the new node's value to value
+			Set the new node's left and right pointers to nullptr
+			set the new node's parent pointer to the current node
+			return from function
+		else
+			set current node to the current node's right pointer
+			continue function
+
+3. TODO

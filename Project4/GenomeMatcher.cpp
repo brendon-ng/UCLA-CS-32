@@ -1,7 +1,7 @@
 #include "provided.h"
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -143,7 +143,7 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
     
     int S = query.length() / fragmentMatchLength;
     
-    map<string, int> genomeCounts;  // Map to count how many times a genome had a match
+    unordered_map<string, int> genomeCounts;  // Map to count how many times a genome had a match
     
     // For each sequence
     for(int i=0; i < S; i++){
@@ -153,7 +153,7 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
         findGenomesWithThisDNA(sequence, fragmentMatchLength, exactMatchOnly, matches); // search for extracted sequence
         // Increase count for all found genomes
         for(int m=0; m< matches.size(); m++){
-            map<string, int>::iterator it = genomeCounts.find(matches[m].genomeName);
+            unordered_map<string, int>::iterator it = genomeCounts.find(matches[m].genomeName);
             if(it == genomeCounts.end()){
                 genomeCounts[matches[m].genomeName] = 1;
             }
@@ -164,7 +164,7 @@ bool GenomeMatcherImpl::findRelatedGenomes(const Genome& query, int fragmentMatc
     }
     
     // for every genome g with a match
-    map<string, int>::iterator it = genomeCounts.begin();
+    unordered_map<string, int>::iterator it = genomeCounts.begin();
     while(it != genomeCounts.end()){
         double p = (static_cast<double>(it->second) / S ) * 100;    // compute the percentage
         if(p >= matchPercentThreshold){     // if it above the threshold, push it to the results vector
