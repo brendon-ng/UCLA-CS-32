@@ -74,4 +74,21 @@ While true
 			set current node to the current node's right pointer
 			continue function
 
-3. TODO
+3a. 
+                                7
+                             /      \
+                            3       6   
+                          /  \     /           
+                         0    2   4  
+ 
+3b. 7 3 6 0 2 4
+3c. 6 3 4 0 2 
+                 
+4a. O(C+S)
+4b. O(log C + S)
+4c. O(log C + log S)
+4d. O(log S)
+4e. O(1)
+4f. O(logC+S)
+4g. O(SlogS)
+4h. O(ClogS)
